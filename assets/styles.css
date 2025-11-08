@@ -1,0 +1,134 @@
+/* CareerloopAI MVP Styling */
+:root {
+  --bg: #0d1117;
+  --card-bg: #161b22;
+  --text: #e6edf3;
+  --accent: #007bff;
+  --accent-light: #66b2ff;
+  --font: 'Inter', sans-serif;
+}
+
+body {
+  margin: 0;
+  font-family: var(--font);
+  background-color: var(--bg);
+  color: var(--text);
+}
+
+.container {
+  width: 90%;
+  max-width: 1000px;
+  margin: 0 auto;
+  padding: 2rem 0;
+}
+
+.site-header {
+  background: var(--card-bg);
+  padding: 1rem 0;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.3);
+}
+
+.nav {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.nav a {
+  color: var(--text);
+  margin: 0 10px;
+  text-decoration: none;
+  font-weight: 500;
+}
+
+.nav a:hover {
+  color: var(--accent-light);
+}
+
+.hero {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 2rem;
+  align-items: center;
+}
+
+.hero-copy h1 {
+  font-size: 2rem;
+  margin-bottom: 1rem;
+}
+
+.hero-copy p {
+  color: #c9d1d9;
+}
+
+.btn {
+  background: var(--accent);
+  color: white;
+  border: none;
+  padding: 0.6rem 1rem;
+  border-radius: 5px;
+  cursor: pointer;
+  text-decoration: none;
+  font-weight: 600;
+}
+
+.btn:hover {
+  background: var(--accent-light);
+}
+
+.btn-outline {
+  background: transparent;
+  border: 1px solid var(--accent);
+}
+
+.features {
+  list-style: none;
+  padding: 0;
+}
+
+.features li {
+  margin: 0.5rem 0;
+}
+
+.card {
+  background: var(--card-bg);
+  border-radius: 10px;
+  padding: 1.5rem;
+  box-shadow: 0 0 10px rgba(0,0,0,0.3);
+}
+
+.grid-3 {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1rem;
+}
+
+.site-footer {
+  text-align: center;
+  padding: 1rem 0;
+  border-top: 1px solid #30363d;
+  color: #8b949e;
+}
+
+.splash {
+  position: fixed;
+  inset: 0;
+  background: var(--bg);
+  color: var(--text);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  animation: fadeOut 5s ease forwards;
+}
+
+.splash img {
+  width: 80px;
+  margin-bottom: 10px;
+}
+
+@keyframes fadeOut {
+  0% { opacity: 1; visibility: visible; }
+  80% { opacity: 0; }
+  100% { opacity: 0; visibility: hidden; }
+}
