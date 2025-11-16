@@ -1,286 +1,360 @@
-// ====== Boot ======
-document.addEventListener("DOMContentLoaded", () => {
-  const y = document.getElementById("year");
-  if (y) y.textContent = new Date().getFullYear();
+const app = (function(){
+  // ✅ IMPORTANT: your backend URL
+  const BACKEND_BASE = "https://careerloopaibackend.onrender.com";
 
-  const splash = document.getElementById("splash");
-  if (splash) setTimeout(() => splash.classList.add("hidden"), 5000);
+  const $ = (id)=>document.getElementById(id);
+  const text = (id, v)=>{ const el = $(id); if(el) el.textContent = v; };
 
-  const savedTheme = localStorage.getItem("clai-theme");
-  if (savedTheme === "light") document.documentElement.classList.add("light");
-  const themeBtn = document.getElementById("themeToggle");
-  if (themeBtn) themeBtn.addEventListener("click", toggleTheme);
+  const state = { bulkFiles: [], lastBulkResults: [] };
 
-  const id = "tsparticles";
-  const el = document.getElementById(id);
-  if (el && window.tsParticles) {
-    tsParticles.load({
-      id,
-      options: {
-        background: { color: { value: "transparent" } },
-        fpsLimit: 60,
-        particles: {
-          number: { value: 60, density: { enable: true, area: 900 } },
-          shape: { type: "circle" }, opacity: { value: 0.4 },
-          size: { value: { min: 1, max: 3 } }, move: { enable: true, speed: 0.6 },
-          links: { enable: true, distance: 120, opacity: 0.2 }
-        },
-        interactivity: { events: { onHover: { enable: true, mode: "grab" }, resize: true },
-          modes: { grab: { distance: 140, links: { opacity: 0.35 } } } },
-        detectRetina: true, fullScreen: { enable: true, zIndex: -1 }
-      }
+  /* ROUTING */
+  function route(){
+    const hash = location.hash || "#home";
+    document.querySelectorAll('.page').forEach(p=>p.classList.remove('page-active'));
+    const el = document.querySelector(hash);
+    if(el) el.classList.add('page-active');
+    document.querySelectorAll('[data-route]').forEach(a=>{
+      if(a.getAttribute('href') === hash) a.classList.add('active');
+      else a.classList.remove('active');
     });
   }
 
-  if (document.getElementById("kpiChart")) initDashboard();
-  if (document.getElementById("pfName")) loadProfile();
-
-  const iframe = document.getElementById("resumePreview");
-  if (iframe) updatePreview();
-});
-
-function toggleTheme(){
-  const root = document.documentElement;
-  root.classList.toggle("light");
-  localStorage.setItem("clai-theme", root.classList.contains("light") ? "light" : "dark");
-}
-
-// ====== Builder ======
-function generateResume() {
-  const form = document.getElementById("builderForm");
-  const data = Object.fromEntries(new FormData(form).entries());
-  showProgress();
-
-  fetch(ENDPOINTS.generateResume, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ ...data, industry: getIndustry(), template: getTemplate() })
-  })
-  .then(r => r.ok ? r.json() : Promise.reject(r.statusText))
-  .then(json => applyDataToPreview(json.resume || data))
-  .catch(() => applyDataToPreview(data))
-  .finally(hideProgress);
-}
-
-function getIndustry(){ const s = document.getElementById("industrySelect"); return s ? s.value : "general"; }
-function getTemplate(){ const s = document.getElementById("templateSelect"); return s ? s.value : "modern"; }
-
-function downloadPDF(){ const iframe = document.getElementById("resumePreview"); iframe?.contentWindow?.print(); }
-
-function downloadDOC(){
-  const iframe = document.getElementById("resumePreview");
-  const html = iframe?.srcdoc || "<html><body></body></html>";
-  const blob = new Blob([html], { type: "application/msword" });
-  const a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = "resume.doc"; a.click();
-}
-
-function applyDataToPreview(data) {
-  const iframe = document.getElementById("resumePreview"); if (!iframe) return;
-  const tpl = getTemplate();
-  const { name="", email="", phone="", title="", summary="", skills="", experience="", education="" } = data;
-  const skillsList = (skills||"").split(",").map(s=>s.trim()).filter(Boolean).map(s=>`<span class="badge">${s}</span>`).join(" ");
-  const baseCSS = `
-    body{font-family:Inter,system-ui;padding:28px;line-height:1.35}
-    h1{margin:0} h2{margin:18px 0 6px} .row{display:flex;gap:12px;flex-wrap:wrap}
-    .hdr{display:flex;justify-content:space-between;align-items:center;border-bottom:2px solid #222;padding-bottom:6px;margin-bottom:10px}
-    .title{font-weight:700} .muted{opacity:.8} .badge{border:1px solid #666;border-radius:999px;padding:2px 8px;font-size:12px}
-  `;
-  const tplCSS = {
-    modern: baseCSS + ".title{color:#4b5dff} h2{color:#4b5dff}",
-    minimal: baseCSS + "body{font-family:Georgia,serif} .badge{border:1px solid #999}",
-    ats: baseCSS + "body{font-family:Arial} .hdr{border:none} h2{border-bottom:1px solid #333;padding-bottom:4px}"
-  }[tpl] || baseCSS;
-
-  const html = `
-    <html><head><meta charset="utf-8"><style>${tplCSS}</style></head>
-    <body>
-      <div class="hdr"><div><h1>${name}</h1><div class="title">${title}</div></div>
-      <div class="muted">${email}${phone ? " · "+phone : ""}</div></div>
-      <h2>Summary</h2><p>${summary}</p>
-      <h2>Skills</h2><div class="row">${skillsList}</div>
-      <h2>Experience</h2><pre style="white-space:pre-wrap">${experience}</pre>
-      <h2>Education</h2><pre style="white-space:pre-wrap">${education}</pre>
-    </body></html>`;
-  iframe.srcdoc = html;
-}
-
-function updatePreview(){
-  const form = document.getElementById("builderForm");
-  if (!form) return;
-  applyDataToPreview(Object.fromEntries(new FormData(form).entries()));
-}
-
-function scoreKeywords(){
-  let jd = localStorage.getItem("clai-last-jd") || "";
-  if (!jd) jd = prompt("Paste target Job Description to score against:");
-  if (!jd) return;
-  const form = document.getElementById("builderForm");
-  const data = Object.fromEntries(new FormData(form).entries());
-  const text = `${data.summary}\n${data.skills}\n${data.experience}\n${data.education}`.toLowerCase();
-  const tokens = Array.from(new Set(jd.toLowerCase().match(/[a-zA-Z0-9\-\+\#\.]{2,}/g)||[]));
-  const hits = tokens.filter(t => text.includes(t));
-  const score = Math.round((hits.length / Math.max(tokens.length,1)) * 100);
-  alert(`Keyword match ≈ ${score}%\nMatched: ${hits.slice(0,30).join(", ")}`);
-}
-
-function copyKeywords(){
-  const industry = getIndustry();
-  const keywords = {
-    general:["communication","leadership","project management"],
-    software:["JavaScript","React","APIs","CI/CD","Cloud","Accessibility"],
-    finance:["Excel","Financial modeling","Forecasting","SQL","Variance analysis"],
-    marketing:["SEO","Content","CRM","Paid ads","Attribution"],
-    healthcare:["EMR","Clinical","HIPAA","Patient care"]
-  }[industry] || [];
-  navigator.clipboard.writeText(keywords.join(", "));
-  alert("Target keywords copied!");
-}
-
-// Tips dialog
-function openTips(){
-  const dialog = document.getElementById("tipsDialog");
-  const list = document.getElementById("tipsList");
-  const tips = {
-    software:["Quantify impact (-15% LCP)","Stack (React/TS/CI)","Link portfolio"],
-    finance:["P&L/ARR/CAC metrics","Excel/SQL models","Forecasting & dashboards"],
-    marketing:["ROAS & CAC/LTV","SEO rank & traffic","A/B tests & uplift"],
-    healthcare:["Outcomes & throughput","Compliance highlights","EMR & privacy"],
-    general:["2 pages max","Metric-driven bullets","Action verbs first"]
-  }[getIndustry()];
-  list.innerHTML = tips.map(t=>`<li>${t}</li>`).join("");
-  dialog.showModal();
-}
-function closeTips(){ document.getElementById("tipsDialog").close(); }
-
-// Save/Load drafts + Import/Export
-function saveDraft(){ const data = Object.fromEntries(new FormData(document.getElementById("builderForm")).entries()); localStorage.setItem("clai-draft", JSON.stringify(data)); alert("Draft saved locally."); }
-function loadDraft(){ const raw = localStorage.getItem("clai-draft"); if (!raw) return alert("No draft found."); const d = JSON.parse(raw); const f = document.getElementById("builderForm"); Object.keys(d).forEach(k => { if (f[k]) f[k].value = d[k]; }); updatePreview(); }
-function importJSON(){ const raw = prompt("Paste JSON exported from CareerloopAI:"); if (!raw) return; try{ const d = JSON.parse(raw); const f = document.getElementById("builderForm"); Object.keys(d).forEach(k => { if (f[k]) f[k].value = d[k]; }); updatePreview(); }catch(e){ alert("Invalid JSON"); } }
-function exportJSON(){ const d = Object.fromEntries(new FormData(document.getElementById("builderForm")).entries()); const blob = new Blob([JSON.stringify(d,null,2)], {type:"application/json"}); const a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = "careerloopai-resume.json"; a.click(); }
-
-// ====== Screening ======
-function sampleResumes(){
-  const jd = document.getElementById("jobDesc");
-  jd.value = "We need a frontend engineer with JavaScript, HTML, CSS, accessibility, and performance skills. React is a plus.";
-  localStorage.setItem("clai-last-jd", jd.value);
-}
-function screenResumes(){
-  const industry = document.getElementById("industryProfile").value;
-  const jd = document.getElementById("jobDesc").value;
-  localStorage.setItem("clai-last-jd", jd);
-  const files = document.getElementById("resumeFiles").files;
-  const results = document.getElementById("results");
-  showProgress();
-
-  const form = new FormData();
-  form.append("industry", industry);
-  form.append("job_desc", jd);
-  for (const f of files) form.append("files", f);
-
-  fetch(ENDPOINTS.screening, { method:"POST", body: form })
-    .then(r => r.ok ? r.json() : Promise.reject(r.statusText))
-    .then(json => renderResults(json.results || []))
-    .catch(() => {
-      renderResults([
-        { name:"Aditi Verma.pdf", score:86, match:"Strong JS, CSS", gaps:"Accessibility" },
-        { name:"Rahul Shah.pdf", score:74, match:"HTML, performance", gaps:"Testing, React" }
-      ]);
-    })
-    .finally(hideProgress);
-}
-function renderResults(rows){
-  const el = document.getElementById("results");
-  if (!rows.length){ el.innerHTML = "<p>No results.</p>"; return; }
-  const html = [`<table class="table"><thead><tr><th>Resume</th><th>Score</th><th>Highlights</th><th>Gaps</th></tr></thead><tbody>`,
-    ...rows.map(r=>`<tr><td>${r.name||"-"}</td><td><strong>${r.score||0}</strong></td><td>${r.match||"-"}</td><td>${r.gaps||"-"}</td></tr>`),
-    `</tbody></table>`].join("");
-  el.innerHTML = html;
-}
-
-// ====== Dashboard & Manager ======
-async function initDashboard(){
-  try{
-    const r = await fetch(ENDPOINTS.stats);
-    const j = await r.json();
-    document.getElementById("kpiUsers").textContent = j.users ?? 0;
-    document.getElementById("kpiResumes").textContent = j.resumes ?? 0;
-    document.getElementById("kpiScreens").textContent = j.screenings ?? 0;
-    makeChart(j.activity || [2,5,7,4,9,12,10]);
-  }catch(e){
-    document.getElementById("kpiUsers").textContent = 1200;
-    document.getElementById("kpiResumes").textContent = 3421;
-    document.getElementById("kpiScreens").textContent = 876;
-    makeChart([2,5,7,4,9,12,10]);
+  async function loadStats(){
+    try{
+      const r = await fetch(`${BACKEND_BASE}/api/dashboard`);
+      const j = await r.json();
+      const c = j.resumes_count || 0;
+      text('statResumes', c);
+      text('statScreened', Math.round(c*0.6));
+      text('statShortlisted', Math.round(c*0.12));
+      text('dash_resumes', c);
+      text('dash_screened', Math.round(c*0.6));
+      text('dash_shortlisted', Math.round(c*0.12));
+      text('dash_revenue', j.revenue_monthly ? `₹${j.revenue_monthly}` : '₹0');
+    }catch(e){}
   }
-}
-function makeChart(series){
-  const ctx = document.getElementById("kpiChart");
-  if (!ctx || !window.Chart) return;
-  new Chart(ctx, { type:"line", data: { labels:["Mon","Tue","Wed","Thu","Fri","Sat","Sun"], datasets:[{ label:"Activity", data:series }] } });
-}
-function managerAdd(){
-  const files = document.getElementById("mgrFiles").files;
-  const list = Array.from(files).map(f => ({ name:f.name, size:f.size }));
-  const old = JSON.parse(localStorage.getItem("clai-mgr")||"[]");
-  const all = old.concat(list);
-  localStorage.setItem("clai-mgr", JSON.stringify(all));
-  managerRender(all);
-}
-function managerClear(){ localStorage.removeItem("clai-mgr"); managerRender([]); }
-function managerRender(all){
-  const el = document.getElementById("mgrTable");
-  if (!el) return;
-  if (!all.length){ el.innerHTML = "<p>No files.</p>"; return; }
-  const html = [`<table class="table"><thead><tr><th>Name</th><th>Size (KB)</th></tr></thead><tbody>`,
-    ...all.map(r=>`<tr><td>${r.name}</td><td>${Math.round(r.size/1024)}</td></tr>`), `</tbody></table>`].join("");
-  el.innerHTML = html;
-}
 
-// ====== Contact ======
-function sendContact(e){
-  e.preventDefault();
-  const data = Object.fromEntries(new FormData(e.target).entries());
-  fetch(ENDPOINTS.contact, {
-    method:"POST",
-    headers:{ "Content-Type":"application/json" },
-    body: JSON.stringify(data)
-  }).then(()=> alert("Thanks! We'll get back to you."))
-    .catch(()=> alert("Sent (mock). Configure BACKEND_BASE_URL."));
-}
+  /* HOME DEMO */
+  function bindHome(){
+    const demoJD = $('demoJD');
+    const demoFile = $('demoFile');
+    const demoResult = $('demoResult');
 
-// ====== Profile ======
-function saveProfile(e){
-  e.preventDefault();
-  const data = { name: pfName.value, role: pfRole.value, email: pfEmail.value };
-  localStorage.setItem("clai-profile", JSON.stringify(data));
-  alert("Profile saved locally.");
-}
-function loadProfile(){
-  const raw = localStorage.getItem("clai-profile");
-  if (!raw) return;
-  const d = JSON.parse(raw);
-  pfName.value = d.name || ""; pfRole.value = d.role || ""; pfEmail.value = d.email || "";
-}
+    $('demoBtn').addEventListener('click',()=>{
+      demoJD.value = "Looking for Senior ML Engineer with Python, PyTorch, Deep Learning, 3+ years experience.";
+    });
 
-// ====== Utilities ======
-function showProgress(){ document.querySelectorAll("#progress .bar").forEach(b=>b.style.width="30%"); document.querySelectorAll("#progress").forEach(p=>p.classList.remove("hidden")); setTimeout(()=>document.querySelectorAll("#progress .bar").forEach(b=>b.style.width="80%"), 300); }
-function hideProgress(){ document.querySelectorAll("#progress .bar").forEach(b=>b.style.width="100%"); setTimeout(()=>document.querySelectorAll("#progress").forEach(p=>p.classList.add("hidden")), 400); }
+    $('demoRun').addEventListener('click', async ()=>{
+      demoResult.classList.add('hidden');
+      const f = demoFile.files[0];
+      const jd = (demoJD.value||'').trim();
+      if(!jd) return alert("Paste a job description.");
+      if(!f) return alert("Choose a sample resume file.");
 
-// Expose to window (called from HTML)
-window.generateResume = generateResume;
-window.updatePreview = updatePreview;
-window.applyTheme = v => document.body.dataset.industry = v;
-window.copyKeywords = copyKeywords;
-window.openTips = openTips;
-window.closeTips = closeTips;
-window.saveDraft = saveDraft;
-window.loadDraft = loadDraft;
-window.importJSON = importJSON;
-window.exportJSON = exportJSON;
-window.scoreKeywords = scoreKeywords;
-window.sampleResumes = sampleResumes;
-window.screenResumes = screenResumes;
-window.sendContact = sendContact;
-window.managerAdd = managerAdd;
-window.managerClear = managerClear;
-window.saveProfile = saveProfile;
+      // upload
+      const fd = new FormData();
+      fd.append('file', f);
+      const up = await fetch(`${BACKEND_BASE}/api/upload/resume`, { method:'POST', body: fd });
+      const upj = await up.json();
+      const snippet = upj.text_snippet || '';
+
+      const resp = await fetch(`${BACKEND_BASE}/api/screening/score`,{
+        method:'POST',
+        headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({ resume_text: snippet, job_description: jd })
+      });
+      const j = await resp.json();
+      demoResult.innerHTML = `<strong>Score: ${j.score ?? 'N/A'}</strong><div style="margin-top:8px">${j.ai_feedback || ''}</div>`;
+      demoResult.classList.remove('hidden');
+    });
+  }
+
+  /* BUILDER */
+  function bindBuilder(){
+    const preview = $('resumePreview');
+    const tplSel = $('templateSelect');
+
+    function renderPreview(){
+      const name = $('b_name').value || "Full Name";
+      const email = $('b_email').value || "you@domain.com";
+      const summary = $('b_summary').value || "";
+      const skills = $('b_skills').value || "";
+      const exp = $('b_experience').value || "";
+      $('previewTemplate').textContent = tplSel.options[tplSel.selectedIndex].text;
+
+      preview.innerHTML = `
+        <div class="r-wrap ${tplSel.value}">
+          <h1 style="margin:0;font-size:18px">${name}</h1>
+          <div style="color:var(--muted);font-size:12px">${email}</div>
+          <h3 style="margin-top:12px;margin-bottom:6px">Professional Summary</h3>
+          <div style="white-space:pre-wrap">${summary}</div>
+          <h3 style="margin-top:10px">Experience</h3>
+          <div style="white-space:pre-wrap">${exp}</div>
+          <h3 style="margin-top:10px">Skills</h3>
+          <div>${skills}</div>
+        </div>
+      `;
+    }
+
+    // load draft
+    const draft = localStorage.getItem('clai-draft');
+    if(draft){
+      try{
+        const d = JSON.parse(draft);
+        $('b_name').value = d.name || '';
+        $('b_email').value = d.email || '';
+        $('b_summary').value = d.summary || '';
+        $('b_skills').value = d.skills || '';
+        $('b_experience').value = d.experience || '';
+      }catch(e){}
+    }
+    ['b_name','b_email','b_summary','b_skills','b_experience'].forEach(id=>{
+      $(id).addEventListener('input', renderPreview);
+    });
+    tplSel.addEventListener('change', renderPreview);
+
+    $('genResume').addEventListener('click', renderPreview);
+
+    $('saveDraft').addEventListener('click',()=>{
+      const d = {
+        name:$('b_name').value,
+        email:$('b_email').value,
+        summary:$('b_summary').value,
+        skills:$('b_skills').value,
+        experience:$('b_experience').value
+      };
+      localStorage.setItem('clai-draft', JSON.stringify(d));
+      alert('Draft saved locally.');
+    });
+
+    $('exportPdf').addEventListener('click',()=>{
+      const w = window.open('', '_blank');
+      w.document.write(`<html><head><title>Resume</title><style>body{font-family:Arial;padding:20px;color:#111}h1{font-size:20px}</style></head><body>${$('resumePreview').innerHTML}</body></html>`);
+      w.document.close();
+      w.print();
+    });
+
+    $('submitResume').addEventListener('click', async ()=>{
+      const name = $('b_name').value;
+      const email = $('b_email').value;
+      const textContent = $('resumePreview').innerText || $('resumePreview').textContent || '';
+
+      const fd = new FormData();
+      const blob = new Blob([textContent], {type:'text/plain'});
+      fd.append('file', blob, `${(name||'candidate').replace(/\s+/g,'_')}.txt`);
+      fd.append('name', name || '');
+      fd.append('email', email || '');
+
+      const res = await fetch(`${BACKEND_BASE}/api/upload/resume`, { method:'POST', body: fd });
+      const j = await res.json();
+      if(j.id){
+        alert('Resume submitted. ID: '+ j.id);
+        loadStats();
+      } else {
+        alert('Error submitting resume.');
+      }
+    });
+
+    renderPreview();
+  }
+
+  /* SINGLE SCREEN */
+  function bindSingleScreen(){
+    $('singleRun').addEventListener('click', async ()=>{
+      const jd = ($('single_jd').value||'').trim();
+      let resume_text = ($('single_resume_text').value||'').trim();
+      const f = $('single_file').files[0];
+
+      if(!jd) return alert("Enter job description.");
+
+      if(f){
+        const fd = new FormData();
+        fd.append('file', f);
+        const up = await fetch(`${BACKEND_BASE}/api/upload/resume`, { method:'POST', body: fd });
+        const upj = await up.json();
+        resume_text = upj.text_snippet || resume_text;
+      }
+
+      if(!resume_text) return alert("Provide resume text or upload a file.");
+
+      $('singleResult').classList.add('hidden');
+      const resp = await fetch(`${BACKEND_BASE}/api/screening/score`,{
+        method:'POST',
+        headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({resume_text, job_description:jd})
+      });
+      const j = await resp.json();
+      $('singleResult').innerHTML = `<strong>Score: ${j.score ?? 'N/A'}</strong><div style="margin-top:8px">${j.ai_feedback || ''}</div>`;
+      $('singleResult').classList.remove('hidden');
+    });
+  }
+
+  /* BULK SCREEN */
+  function bindBulk(){
+    const drop = $('dropZone');
+    const fileInput = $('bulkFiles');
+    const bulkJD = $('bulk_jd');
+    const bulkProgress = $('bulkProgress');
+    const bulkBar = $('bulkProgressBar');
+    const bulkStatus = $('bulkStatus');
+    const resultsWrap = $('bulkResults');
+    const resultsBody = $('bulkResultsBody');
+
+    drop.addEventListener('dragover', e=>{e.preventDefault(); drop.classList.add('drag');});
+    drop.addEventListener('dragleave', e=>{drop.classList.remove('drag');});
+    drop.addEventListener('drop', e=>{
+      e.preventDefault();
+      drop.classList.remove('drag');
+      const files = Array.from(e.dataTransfer.files || []);
+      state.bulkFiles = state.bulkFiles.concat(files);
+      fileInput.files = toFileList(state.bulkFiles);
+      renderBulkList();
+    });
+
+    fileInput.addEventListener('change', e=>{
+      state.bulkFiles = Array.from(e.target.files || []);
+      renderBulkList();
+    });
+
+    $('bulkClear').addEventListener('click', ()=>{
+      state.bulkFiles = [];
+      fileInput.value = "";
+      renderBulkList();
+    });
+
+    function renderBulkList(){
+      resultsBody.innerHTML = "";
+      state.bulkFiles.forEach((f,i)=>{
+        const tr = document.createElement('tr');
+        tr.innerHTML = `<td>${i+1}</td><td>${f.name}</td><td>-</td><td>-</td>
+          <td><button class="btn ghost" onclick="app.removeBulk(${i})">Remove</button></td>`;
+        resultsBody.appendChild(tr);
+      });
+      if(state.bulkFiles.length) resultsWrap.classList.remove('hidden'); else resultsWrap.classList.add('hidden');
+    }
+
+    $('bulkUploadAndRun').addEventListener('click', async ()=>{
+      if(!state.bulkFiles.length) return alert("Add files first.");
+      const jd = (bulkJD.value||'').trim();
+      if(!jd) return alert("Paste a job description.");
+
+      bulkProgress.classList.remove('hidden');
+      bulkBar.style.width = '0%';
+      bulkStatus.textContent = `0 / ${state.bulkFiles.length}`;
+
+      // upload sequentially
+      const uploaded = [];
+      for(let i=0;i<state.bulkFiles.length;i++){
+        const f = state.bulkFiles[i];
+        const fd = new FormData();
+        fd.append('file', f);
+        fd.append('job_id', 0);
+        const up = await fetch(`${BACKEND_BASE}/api/upload/resume`, { method:'POST', body: fd });
+        const upj = await up.json();
+        uploaded.push({ id: upj.id, filename: upj.filename, text_snippet: upj.text_snippet });
+        bulkBar.style.width = `${Math.round((i+1)/state.bulkFiles.length*40)}%`;
+        bulkStatus.textContent = `${i+1} / ${state.bulkFiles.length}`;
+      }
+
+      const items = uploaded.map(u=>({ resume_text:u.text_snippet, resume_id:u.id }));
+      const resp = await fetch(`${BACKEND_BASE}/api/screening/bulk`,{
+        method:'POST',
+        headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({ job_description: jd, items })
+      });
+      const j = await resp.json();
+
+      state.lastBulkResults = j.results || [];
+      resultsBody.innerHTML = "";
+      state.lastBulkResults.forEach((r,idx)=>{
+        const tr = document.createElement('tr');
+        const fileName = (uploaded[idx] && uploaded[idx].filename) || (`Resume ${idx+1}`);
+        const matched = (r.matched || []).slice(0,6).join(', ');
+        tr.innerHTML = `<td>${idx+1}</td>
+          <td>${fileName}</td>
+          <td>${r.score ?? 'N/A'}</td>
+          <td>${matched}</td>
+          <td><button class="btn ghost" onclick="app.markShortlist(${r.resume_id})">Shortlist</button></td>`;
+        resultsBody.appendChild(tr);
+      });
+
+      bulkBar.style.width = '100%';
+      bulkStatus.textContent = `${state.lastBulkResults.length} / ${state.bulkFiles.length}`;
+    });
+
+    $('exportCSV').addEventListener('click', ()=>{
+      if(!state.lastBulkResults.length) return alert('No results to export.');
+      const rows = [['resume_id','filename','score','matched']];
+      state.lastBulkResults.forEach((r,idx)=>{
+        const fn = (state.bulkFiles[idx] && state.bulkFiles[idx].name) || '';
+        rows.push([
+          r.resume_id || '',
+          fn,
+          r.score || '',
+          (r.matched||[]).slice(0,8).join(';')
+        ]);
+      });
+      const csv = rows.map(r=>r.map(c=>`"${String(c||'').replace(/"/g,'""')}"`).join(',')).join('\n');
+      const blob = new Blob([csv], {type:'text/csv'});
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'bulk_results.csv';
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
+    });
+
+    window.app.removeBulk = (i)=>{
+      state.bulkFiles.splice(i,1);
+      $('bulkFiles').files = toFileList(state.bulkFiles);
+      renderBulkList();
+    };
+  }
+
+  async function markShortlist(id){
+    if(!id) return alert('No resume id');
+    try{
+      const res = await fetch(`${BACKEND_BASE}/api/resume/${id}/shortlist`, { method:'POST' });
+      const j = await res.json();
+      if(j.ok) alert('Marked shortlisted.');
+      else alert('Shortlist done.');
+      loadStats();
+    }catch(e){
+      alert('Shortlist request failed.');
+    }
+  }
+
+  function toFileList(files){
+    const dt = new DataTransfer();
+    files.forEach(f=>dt.items.add(f));
+    return dt.files;
+  }
+
+  function init(){
+    window.addEventListener('hashchange', route);
+    route();
+    bindHome();
+    bindBuilder();
+    bindSingleScreen();
+    bindBulk();
+    loadStats();
+    const yEl = $('year');
+    if(yEl) yEl.textContent = new Date().getFullYear();
+    document.querySelectorAll('[data-route]').forEach(a=>{
+      a.addEventListener('click', e=>{
+        e.preventDefault();
+        location.hash = a.getAttribute('href');
+      });
+    });
+  }
+
+  return {
+    init,
+    go:(h)=>location.hash=h,
+    markShortlist
+  };
+})();
+
+window.addEventListener('DOMContentLoaded', ()=>app.init());
