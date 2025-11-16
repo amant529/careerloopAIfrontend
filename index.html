@@ -1,121 +1,245 @@
 <!doctype html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>CareerloopAI — AI Resume Builder & Screening</title>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Careerloop AI — MVP</title>
 
-  <!-- ✅ Favicon (uses your logo.svg, no .ico needed) -->
-  <link rel="icon" href="assets/logo.svg" type="image/svg+xml">
-  <link rel="shortcut icon" href="assets/logo.svg" type="image/svg+xml">
-
-  <!-- Fonts -->
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-
-  <!-- CSS -->
-  <link rel="stylesheet" href="assets/styles.css">
-
-  <!-- JS -->
-  <script src="assets/config.js" defer></script>
-  <script src="assets/app.js" defer></script>
-  <script src="assets/chat-assistant.js" defer></script>
-
-  <!-- Libraries -->
-  <script src="https://cdn.jsdelivr.net/npm/tsparticles@3/tsparticles.bundle.min.js" defer></script>
-  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js" defer></script>
+  <link rel="stylesheet" href="assets/styles.css" />
+  <meta name="theme-color" content="#3B82F6" />
+  <link rel="icon" href="assets/logo.svg" type="image/svg+xml" />
 </head>
-
 <body>
-  <div id="tsparticles"></div>
+  <div id="app" class="app-root">
+    <nav class="nav">
+      <div class="nav-left">
+        <div class="logo" onclick="app.go('#home')">
+          <svg width="36" height="36" viewBox="0 0 24 24" fill="none">
+            <rect width="24" height="24" rx="6" fill="#3B82F6"/>
+            <path d="M7 12h10M7 8h10M7 16h6" stroke="#fff" stroke-width="1.4" stroke-linecap="round"/>
+          </svg>
+          <strong>Careerloop</strong>
+        </div>
+      </div>
+      <div class="nav-center">
+        <a href="#home" data-route>Home</a>
+        <a href="#builder" data-route>Resume Builder</a>
+        <a href="#screen" data-route>AI Screening</a>
+        <a href="#bulk" data-route>Bulk Screening</a>
+        <a href="#dashboard" data-route>Dashboard</a>
+      </div>
+      <div class="nav-right">
+        <button class="btn ghost" id="demoBtn">Try Demo JD</button>
+        <a class="btn primary" href="#builder" data-route>Create Resume</a>
+      </div>
+    </nav>
 
-  <!-- Splash -->
-  <div id="splash" class="splash">
-    <img src="assets/logo.svg" alt="CareerloopAI Logo" class="logo" />
-    <h1>CareerloopAI</h1>
-    <p>AI resumes & screening — tuned for your industry.</p>
+    <main class="page-container">
+      <!-- HOME -->
+      <section id="home" class="page page-active">
+        <header class="hero">
+          <div class="hero-left">
+            <h1>AI Resume Builder & Bulk Screening that actually works.</h1>
+            <p class="muted">
+              Upload resumes, run AI screening (semantic + keyword), shortlist candidates and export —
+              built for HR teams. ATS-friendly templates included.
+            </p>
+            <div class="hero-ctas">
+              <a class="btn primary" href="#builder" data-route>Build Resume</a>
+              <a class="btn outline" href="#bulk" data-route>Bulk Screen Now</a>
+            </div>
+
+            <div class="trust">
+              <div class="mini-stats">
+                <div><strong id="statResumes">0</strong><span>Resumes</span></div>
+                <div><strong id="statScreened">0</strong><span>Screened</span></div>
+                <div><strong id="statShortlisted">0</strong><span>Shortlisted</span></div>
+              </div>
+            </div>
+          </div>
+          <div class="hero-right">
+            <div class="preview-card">
+              <div class="preview-header">Quick Demo</div>
+              <textarea id="demoJD" placeholder="Paste job description here"></textarea>
+              <div class="demo-actions">
+                <input type="file" id="demoFile" accept=".pdf,.docx,.txt" />
+                <button class="btn primary" id="demoRun">Run Quick Screen</button>
+              </div>
+              <div id="demoResult" class="result-card hidden"></div>
+            </div>
+          </div>
+        </header>
+
+        <section class="features">
+          <div class="feature">
+            <h3>ATS-friendly Templates</h3>
+            <p>3 premium resume templates — single-column, ATS-optimized.</p>
+          </div>
+          <div class="feature">
+            <h3>Semantic Screening</h3>
+            <p>Embeddings + keyword match for meaningful score.</p>
+          </div>
+          <div class="feature">
+            <h3>Bulk Shortlisting</h3>
+            <p>Upload & process bulk resumes, shortlist, export CSV.</p>
+          </div>
+        </section>
+      </section>
+
+      <!-- RESUME BUILDER -->
+      <section id="builder" class="page">
+        <div class="section-head">
+          <h2>Resume Builder</h2>
+          <div class="muted">
+            Generate ATS-friendly resumes from prompts or fill manually. Choose a template and export PDF.
+          </div>
+        </div>
+
+        <div class="builder-grid">
+          <form id="builderForm" class="card">
+            <label>Full Name
+              <input type="text" id="b_name" name="name" placeholder="e.g., Asha Kumar"/>
+            </label>
+            <label>Email
+              <input type="email" id="b_email" name="email" placeholder="you@domain.com"/>
+            </label>
+            <label>Professional Summary
+              <textarea id="b_summary" name="summary" rows="4" placeholder="Brief summary..."></textarea>
+            </label>
+            <label>Skills (comma separated)
+              <input id="b_skills" name="skills" placeholder="Python, SQL, Machine Learning"/>
+            </label>
+            <label>Experience (one per line)
+              <textarea id="b_experience" rows="6" placeholder="Company • Role • Jan 2020 — Present&#10;- Achievement"></textarea>
+            </label>
+
+            <div style="display:flex;gap:10px;margin-top:8px;">
+              <select id="templateSelect">
+                <option value="template-a">Template A — ATS Clean</option>
+                <option value="template-b">Template B — Modern</option>
+                <option value="template-c">Template C — Executive</option>
+              </select>
+              <button type="button" class="btn primary" id="genResume">Generate</button>
+              <button type="button" class="btn outline" id="saveDraft">Save Draft</button>
+              <button type="button" class="btn ghost" id="exportPdf">Export PDF</button>
+            </div>
+          </form>
+
+          <div class="card preview">
+            <div class="preview-toolbar">
+              Preview — <span id="previewTemplate">Template A</span>
+            </div>
+            <div id="resumePreview" class="resume-render"></div>
+            <div class="preview-foot">
+              <button class="btn primary" id="submitResume">Submit to Platform</button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- SINGLE SCREENING -->
+      <section id="screen" class="page">
+        <div class="section-head">
+          <h2>AI Screening — Single</h2>
+          <div class="muted">Quick check for one resume against a job description.</div>
+        </div>
+
+        <div class="card">
+          <label>Job description
+            <textarea id="single_jd" rows="6" placeholder="Enter job description..."></textarea>
+          </label>
+          <label>Paste resume text (or upload file)</label>
+          <textarea id="single_resume_text" rows="6" placeholder="Paste resume text..."></textarea>
+          <div style="display:flex;gap:8px;margin-top:10px;">
+            <input type="file" id="single_file" accept=".pdf,.docx,.txt" />
+            <button class="btn primary" id="singleRun">Run Screening</button>
+          </div>
+          <div id="singleResult" class="result-card hidden"></div>
+        </div>
+      </section>
+
+      <!-- BULK SCREENING -->
+      <section id="bulk" class="page">
+        <div class="section-head">
+          <h2>Bulk Screening</h2>
+          <div class="muted">
+            Drag & drop a bunch of resumes (PDF/DOCX/TXT). Then paste job description and run bulk screening.
+          </div>
+        </div>
+
+        <div class="card">
+          <div id="dropZone" class="dropzone">
+            Drop resumes here or
+            <input id="bulkFiles" type="file" multiple accept=".pdf,.docx,.txt" />
+          </div>
+          <label style="margin-top:12px">Job description
+            <textarea id="bulk_jd" rows="6" placeholder="Paste job description for bulk screening..."></textarea>
+          </label>
+
+          <div class="bulk-actions">
+            <button class="btn primary" id="bulkUploadAndRun">Upload & Run</button>
+            <button class="btn outline" id="bulkClear">Clear</button>
+            <div id="bulkProgress" class="bulk-progress hidden">
+              <div class="progress-bar">
+                <div id="bulkProgressBar" style="width:0%"></div>
+              </div>
+              <div id="bulkStatus" class="muted">0 / 0</div>
+            </div>
+          </div>
+
+          <div id="bulkResults" class="table-wrap hidden">
+            <table class="results-table">
+              <thead>
+                <tr><th>#</th><th>Name / File</th><th>Score</th><th>Matched</th><th>Actions</th></tr>
+              </thead>
+              <tbody id="bulkResultsBody"></tbody>
+            </table>
+            <div style="margin-top:10px">
+              <button class="btn primary" id="exportCSV">Export CSV</button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- DASHBOARD -->
+      <section id="dashboard" class="page">
+        <div class="section-head">
+          <h2>Dashboard</h2>
+          <div class="muted">Live metrics for your MVP.</div>
+        </div>
+
+        <div class="dash-grid">
+          <div class="stat-card">
+            <div class="stat-value" id="dash_resumes">0</div>
+            <div class="stat-label">Total Resumes</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-value" id="dash_screened">0</div>
+            <div class="stat-label">Screened</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-value" id="dash_shortlisted">0</div>
+            <div class="stat-label">Shortlisted</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-value" id="dash_revenue">₹0</div>
+            <div class="stat-label">Monthly Revenue</div>
+          </div>
+        </div>
+
+        <div class="card" style="margin-top:18px;">
+          <h3>Recent Candidates</h3>
+          <div id="recentList" class="list"></div>
+        </div>
+      </section>
+    </main>
+
+    <footer class="footer">
+      <div>© <span id="year"></span> Careerloop • Built for hiring teams</div>
+      <div class="muted">Beta — feedback welcome</div>
+    </footer>
   </div>
 
-  <header class="site-header">
-    <div class="container nav">
-      <a class="brand" href="index.html">
-        <img src="assets/logo.svg" width="32" height="32" alt="logo"/>
-        <span>CareerloopAI</span>
-      </a>
-      <nav>
-        <a href="builder.html">Resume Builder</a>
-        <a href="screening.html">AI Screening</a>
-        <a href="dashboard.html">Dashboard</a>
-        <a href="profile.html">Profile</a>
-        <a href="about.html">About</a>
-        <a href="contact.html">Contact</a>
-      </nav>
-      <div class="nav-actions">
-        <button id="themeToggle" class="btn small">Theme</button>
-      </div>
-    </div>
-  </header>
-
-  <main class="container hero">
-    <section class="hero-copy">
-      <h1>Build a job-winning resume. Screen smarter.</h1>
-      <p>Create ATS-friendly resumes and evaluate candidates by industry criteria — pure HTML/CSS/JS.</p>
-      <div class="cta">
-        <a class="btn btn-primary" href="builder.html">Start Building</a>
-        <a class="btn btn-outline" href="screening.html">Try Screening</a>
-      </div>
-      <ul class="features">
-        <li>Industry templates & live preview</li>
-        <li>Keyword targeting & scoring</li>
-        <li>Bulk screening & evidence-based results</li>
-        <li>Export PDF / DOC / JSON</li>
-      </ul>
-    </section>
-
-    <section class="hero-card">
-      <div class="card demo-card">
-        <h3>Live Preview</h3>
-        <p>Type, generate, and print instantly.</p>
-        <!-- ✅ New working placeholder (stable CDN) -->
-        <img src="https://placehold.co/400x250/1e1e1e/ffffff?text=Resume+Preview" alt="Preview" />
-      </div>
-    </section>
-  </main>
-
-  <section class="container grid-3">
-    <div class="card"><h3>Job Seekers</h3><p>Tailor resumes per job.</p></div>
-    <div class="card"><h3>Recruiters</h3><p>Score & shortlist faster.</p></div>
-    <div class="card"><h3>Teams</h3><p>Standardize rubrics & collaborate.</p></div>
-  </section>
-
-  <section class="container card testimonials">
-    <h3>What users say</h3>
-    <div class="testi-grid">
-      <blockquote>“Got interviews in 48 hours.”<footer>— Aditi</footer></blockquote>
-      <blockquote>“Bulk screening saved our week.”<footer>— Rahul</footer></blockquote>
-      <blockquote>“No setup. Just works.”<footer>— Nisha</footer></blockquote>
-    </div>
-  </section>
-
-  <footer class="site-footer">
-    <div class="container">
-      <p class="tiny">© <span id="year"></span> CareerloopAI</p>
-    </div>
-  </footer>
-
-  <!-- Floating AI Assistant -->
-  <div id="clai-assistant" class="clai-assistant">
-    <button id="clai-toggle" class="clai-button">Ask AI</button>
-    <div id="clai-panel" class="clai-panel hidden">
-      <div class="clai-header">CareerloopAI Assistant</div>
-      <div id="clai-messages" class="clai-messages"></div>
-      <form id="clai-form" class="clai-form">
-        <input id="clai-input" placeholder="Ask about resumes, screening, or issues…" />
-        <button class="btn btn-primary" type="submit">Send</button>
-      </form>
-      <div class="clai-note tiny">AI may make mistakes — verify important info.</div>
-    </div>
-  </div>
+  <script src="assets/app.js"></script>
 </body>
 </html>
