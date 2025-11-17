@@ -1,184 +1,260 @@
-const BACKEND = "https://careerloopaibackend.onrender.com";
+/************************************************************
+ * CONFIG
+ ************************************************************/
+const BACKEND = "https://careerloopaibackend.onrender.com"; // << change if needed
 
+
+/************************************************************
+ * SIMPLE UTILITIES
+ ************************************************************/
 const $ = (id) => document.getElementById(id);
 
-function toast(msg){
-  const t = $('toast');
-  t.innerText = msg;
-  t.style.display='block';
-  setTimeout(()=>t.style.display='none',3000);
+function toast(msg, duration = 3000) {
+  const t = $("toast");
+  t.textContent = msg;
+  t.style.display = "block";
+  setTimeout(() => (t.style.display = "none"), duration);
 }
 
-/* ------------------ LOGIN ------------------ */
-$('loginBtn').addEventListener('click', ()=>{
-  const email = $('loginEmail').value.trim();
-  if(!email || !email.includes('@')) return toast("Enter valid email");
-  localStorage.setItem("userEmail", email);
-  $('userEmailLabel').innerText = email;
-  $('login').classList.remove('page-active');
-  $('mainWrapper').classList.remove('hidden');
-});
+function showPage(pageId) {
+  document.querySelectorAll(".page").forEach((p) => p.classList.remove("page-active"));
+  $(pageId).classList.add("page-active");
+}
 
-/* LOGOUT */
-$('logoutBtn').addEventListener('click', ()=>{
-  localStorage.removeItem("userEmail");
+function requireAuth() {
+  const email = localStorage.getItem("cl_user");
+  if (email) {
+    $("userEmailLabel").textContent = email;
+    $("login").classList.remove("page-active");
+    $("mainWrapper").classList.remove("hidden");
+    showPage(location.hash.replace("#", "") || "home");
+  } else {
+    $("mainWrapper").classList.add("hidden");
+    $("login").classList.add("page-active");
+  }
+}
+
+
+/************************************************************
+ * LOGIN + LOGOUT
+ ************************************************************/
+$("loginBtn").onclick = () => {
+  const email = $("loginEmail").value.trim();
+  if (!email.includes("@")) return toast("Enter a valid email");
+
+  localStorage.setItem("cl_user", email);
+  $("userEmailLabel").textContent = email;
+  $("login").classList.remove("page-active");
+  $("mainWrapper").classList.remove("hidden");
+  showPage("home");
+};
+
+$("logoutBtn").onclick = () => {
+  localStorage.removeItem("cl_user");
   location.reload();
+};
+
+
+/************************************************************
+ * PAGE NAVIGATION
+ ************************************************************/
+window.addEventListener("hashchange", () => {
+  const p = location.hash.replace("#", "") || "home";
+  showPage(p);
 });
 
-/* ROUTING */
-function route(){
-  const hash = location.hash || '#home';
-  document.querySelectorAll('.page').forEach(p=>p.classList.remove('page-active'));
-  const el = document.querySelector(hash);
-  if(el) el.classList.add('page-active');
-
-  document.querySelectorAll('[data-route]').forEach(a=>{
-    a.classList.toggle('active', a.getAttribute('href')===hash);
+document.querySelectorAll("[data-route]").forEach((a) => {
+  a.addEventListener("click", (e) => {
+    e.preventDefault();
+    const hash = a.getAttribute("href");
+    location.hash = hash;
   });
-}
-window.addEventListener('hashchange',route);
+});
 
-/* SHOW PRIVACY POLICY TEMP */
-function showPolicy(){ toast("Policy page coming soon"); }
+// initial view
+requireAuth();
 
-/* ----------------- RESUME BUILDER ----------------- */
-$('genResume').addEventListener('click', async ()=>{
 
-  if(!$('b_consent').checked) return toast("Consent required");
-
+/************************************************************
+ * AI RESUME BUILDER
+ ************************************************************/
+$("genResume").onclick = async () => {
   const payload = {
-    name:$('b_name').value,
-    email:$('b_email').value || localStorage.getItem("userEmail"),
-    target_role:$('b_role').value,
-    experience_level:$('b_exp').value,
-    achievements:$('b_achieve').value,
-    skills:$('b_skills').value,
-    projects:$('b_proj').value,
-    education:$('b_edu').value,
-    certifications:$('b_cert').value,
-    extras:$('b_extra').value,
-    consent:true
+    name: $("b_name").value.trim(),
+    email: $("b_email").value.trim(),
+    role: $("b_role").value.trim(),
+    exp: $("b_exp").value.trim(),
+    achieve: $("b_achieve").value.trim(),
+    skills: $("b_skills").value.trim(),
+    proj: $("b_proj").value.trim(),
+    edu: $("b_edu").value.trim(),
+    cert: $("b_cert").value.trim(),
+    extra: $("b_extra").value.trim(),
+    consent: $("b_consent").checked,
   };
 
-  $('resumePreview').innerHTML = "Generating...";
+  if (!payload.name || !payload.email) return toast("Name & email required");
 
-  try{
-    const res = await fetch(`${BACKEND}/api/builder/generate`,{
-      method:'POST',
-      headers:{'Content-Type':'application/json'},
-      body:JSON.stringify(payload)
+  if (!payload.consent) return toast("Consent is required");
+
+  $("resumePreview").innerHTML = "<p class='muted'>Generating resume...</p>";
+
+  try {
+    const res = await fetch(`${BACKEND}/api/builder/generate`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
     });
-    const j = await res.json();
-    if(j.html) $('resumePreview').innerHTML = j.html;
-    else $('resumePreview').innerHTML = "Error.";
-  }catch{
-    toast("Server error");
+
+    const data = await res.json();
+
+    if (!res.ok) throw new Error(data.error || "Failed to generate");
+
+    $("resumePreview").textContent = data.resume || "No content returned";
+
+  } catch (err) {
+    $("resumePreview").innerHTML = "<p class='muted'>❌ Error generating resume</p>";
+    toast(err.message);
   }
-});
+};
 
-/* SAVE */
-$('saveResumeBtn').addEventListener('click', ()=>{
-  toast("Resume saved in DB automatically when generated.");
-});
 
-/* PDF */
-$('downloadPdfBtn').addEventListener('click', ()=>{
-  const w = window.open();
-  w.document.write('<html><body>'+$('resumePreview').innerHTML+'</body></html>');
+// SAVE RESUME
+$("saveResumeBtn").onclick = async () => {
+  try {
+    const email = localStorage.getItem("cl_user");
+    const resume = $("resumePreview").textContent.trim();
+
+    if (!resume) return toast("Generate resume first");
+
+    const res = await fetch(`${BACKEND}/api/builder/save`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email, resume }),
+    });
+
+    if (res.ok) toast("Resume saved");
+    else toast("Save failed");
+
+  } catch {
+    toast("Error saving");
+  }
+};
+
+
+// PDF DOWNLOAD
+$("downloadPdfBtn").onclick = () => {
+  const text = $("resumePreview").textContent.trim();
+  if (!text) return toast("Generate resume first");
+
+  const w = window.open("", "_blank");
+  w.document.write(`<pre style="font-family:Arial;white-space:pre-wrap;">${text}</pre>`);
   w.print();
-});
+};
 
-/* ----------------- SCREENING (single) ----------------- */
-$('screenSingleBtn').addEventListener('click', async()=>{
-  const jd = $('singleJD').value.trim();
-  const resume = $('singleResume').value.trim();
-  if(!jd || !resume) return toast("Enter JD + Resume");
-  $('singleScreenResult').classList.remove('hidden');
-  $('singleScreenResult').innerText = "Processing...";
 
-  try{
-    const r = await fetch(`${BACKEND}/api/screening/score`,{
-      method:'POST',
-      headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({resume_text:resume, job_description:jd})
+/************************************************************
+ * AI SCREENING
+ ************************************************************/
+
+// Single
+$("screenSingleBtn").onclick = async () => {
+  const payload = {
+    jd: $("singleJD").value.trim(),
+    resume: $("singleResume").value.trim(),
+  };
+
+  if (!payload.jd || !payload.resume) return toast("Enter both JD & Resume");
+
+  $("singleScreenResult").classList.remove("hidden");
+  $("singleScreenResult").innerHTML = "Processing...";
+
+  try {
+    const res = await fetch(`${BACKEND}/api/screen/single`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
     });
-    const j = await r.json();
-    $('singleScreenResult').innerText = JSON.stringify(j,null,2);
-  }catch{
-    toast("Error");
+
+    const data = await res.json();
+
+    $("singleScreenResult").innerHTML = `
+      <b>Score:</b> ${data.score}/100
+      <br><b>Match Summary:</b><br>${data.summary}
+    `;
+
+  } catch {
+    $("singleScreenResult").innerHTML = "Error running screening";
   }
-});
+};
 
-/* ----------------- BULK ----------------- */
-$('screenBulkBtn').addEventListener('click', async()=>{
-  const jd = $('bulkJD').value.trim();
-  const files = $('bulkFiles').files;
-  if(!jd || !files.length) return toast("Add JD & files");
 
-  const items = [];
+// Bulk
+$("screenBulkBtn").onclick = async () => {
+  const jd = $("bulkJD").value.trim();
+  const files = $("bulkFiles").files;
 
-  for(const file of files){
-    const fd = new FormData();
-    fd.append("file", file);
-    const upload = await fetch(`${BACKEND}/api/upload/resume`,{method:'POST',body:fd});
-    const up = await upload.json();
-    items.push({resume_text:up.text_snippet,resume_id:up.id});
+  if (!jd || files.length === 0) return toast("Enter JD & Select Files");
+
+  $("bulkScreenResult").classList.remove("hidden");
+  $("bulkScreenResult").innerHTML = "Uploading & analyzing...";
+
+  const fd = new FormData();
+  fd.append("jd", jd);
+  for (let file of files) fd.append("files", file);
+
+  try {
+    const res = await fetch(`${BACKEND}/api/screen/bulk`, { method: "POST", body: fd });
+    const data = await res.json();
+
+    $("bulkScreenResult").innerHTML = `<pre>${JSON.stringify(data.results, null, 2)}</pre>`;
+
+  } catch {
+    $("bulkScreenResult").innerHTML = "Error analyzing";
   }
+};
 
-  $('bulkScreenResult').classList.remove('hidden');
-  $('bulkScreenResult').innerText = "Analyzing...";
 
-  const res = await fetch(`${BACKEND}/api/screening/bulk`,{
-    method:'POST',
-    headers:{'Content-Type':'application/json'},
-    body:JSON.stringify({job_description:jd,items})
-  });
-  const j = await res.json();
-  $('bulkScreenResult').innerText = JSON.stringify(j,null,2);
-});
-
-/* ----------------- ADMIN ----------------- */
-$('loadAdminStats').addEventListener('click', async()=>{
-  const res = await fetch(`${BACKEND}/api/admin/overview`,{
-    headers:{'X-Admin-Key':'SUPER_SIMPLE_ADMIN_KEY'}
-  });
-  const j = await res.json();
-  $('adminStats').innerText = JSON.stringify(j,null,2);
-});
-
-/* Initialize */
-route();
-
-/* ----------------- ANIMATED WAVE BACKGROUND ----------------- */
-
+/************************************************************
+ * BACKGROUND ANIMATED WAVES
+ ************************************************************/
 const canvas = document.getElementById("bgWaveCanvas");
 const ctx = canvas.getContext("2d");
 
-function resizeCanvas(){
+function resizeCanvas() {
   canvas.width = window.innerWidth;
   canvas.height = window.innerHeight;
 }
 resizeCanvas();
-window.addEventListener("resize", resizeCanvas);
+window.onresize = resizeCanvas;
 
-let offset = 0;
+let t = 0;
+function draw() {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-function animateWave(){
-  offset += 0.015;
-  ctx.clearRect(0,0,canvas.width,canvas.height);
-  for(let i=0;i<3;i++){
+  for (let i = 0; i < 3; i++) {
     ctx.beginPath();
-    ctx.moveTo(0, canvas.height/2 + i*20);
+    ctx.lineWidth = 2;
 
-    for(let x=0; x<canvas.width; x++){
-      const y = Math.sin(x*0.006 + offset + i)*12;
-      ctx.lineTo(x, canvas.height/2 + y + i*18);
+    ctx.strokeStyle =
+      i === 0 ? "#6c5ce7ff" :
+      i === 1 ? "#b26efbff" :
+                "#5dade2ff";
+
+    const amplitude = 40 + i * 15;
+    const wavelength = 0.01 + i * 0.005;
+    const yOffset = canvas.height * 0.7 + i * 25;
+
+    for (let x = 0; x < canvas.width; x++) {
+      const y = yOffset + Math.sin(x * wavelength + t + i) * amplitude;
+      ctx.lineTo(x, y);
     }
 
-    ctx.strokeStyle = i===0 ? "#6c5ce7aa" : i===1 ? "#ff9ff3aa" : "#74b9ffaa";
-    ctx.lineWidth = 1.5;
     ctx.stroke();
   }
-  requestAnimationFrame(animateWave);
+
+  t += 0.015;
+  requestAnimationFrame(draw);
 }
-animateWave();
+
+draw();
