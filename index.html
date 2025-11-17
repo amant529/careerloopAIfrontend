@@ -1,81 +1,197 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
+  <!-- SEO ESSENTIALS -->
+  <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Careerloop AI – Resume + Screening SaaS</title>
-  <link rel="stylesheet" href="assets/styles.css" />
+
+  <title>Careerloop AI | Free ATS Resume Builder & AI Resume Screening</title>
+
+  <meta name="description" content="Careerloop AI helps job seekers create professional ATS-friendly resumes and enables HR teams to bulk screen resumes using AI-powered scoring and keyword matching. Free for early users.">
+
+  <meta name="keywords" content="resume builder, ats resume, bulk resume screening, careerloop, AI resume, AI job screening, resume score, job seeker india, career ai, hr ai, cv analyzer">
+
+  <meta name="robots" content="index, follow">
+  <link rel="canonical" href="https://www.careerloopai.com/" />
+
+  <!-- Open Graph -->
+  <meta property="og:title" content="Careerloop AI | ATS Resume Builder + AI Screening">
+  <meta property="og:description" content="Create professional ATS resumes, screen resumes in bulk, and improve job match using AI — Free for early users.">
+  <meta property="og:image" content="assets/og-image.png">
+  <meta property="og:url" content="https://www.careerloopai.com/">
+  <meta property="og:type" content="website">
+
+  <!-- Twitter Card -->
+  <meta name="twitter:card" content="summary_large_image">
+
   <link rel="icon" href="assets/logo.svg" type="image/svg+xml" />
+  <link rel="stylesheet" href="assets/styles.css"/>
+
+  <!-- Schema JSON -->
+  <script type="application/ld+json">
+  {
+   "@context": "https://schema.org",
+   "@type": "SoftwareApplication",
+   "name": "Careerloop AI",
+   "applicationCategory": "BusinessApplication",
+   "operatingSystem": "All",
+   "offers": {
+     "@type": "Offer",
+     "price": "0",
+     "priceCurrency": "INR"
+   },
+   "description": "AI-powered ATS resume builder and bulk resume screening platform.",
+   "url": "https://www.careerloopai.com/"
+  }
+  </script>
+
 </head>
 <body>
-  <div id="app" class="app-root">
 
-    <!-- ====================== NAVBAR ======================= -->
+<!-- Animated Wave Background -->
+<canvas id="bgWaveCanvas"></canvas>
+
+<div id="toast"></div>
+
+<div id="app">
+
+  <!-- LOGIN VIEW -->
+  <section id="login" class="page page-active">
+    <div class="auth-card">
+      <h2>Welcome to Careerloop AI</h2>
+      <p class="muted">Enter your email to continue</p>
+      <input type="email" id="loginEmail" placeholder="you@example.com"/>
+      <button class="btn primary" id="loginBtn">Continue</button>
+      <small class="legal-small">
+        By continuing you agree to our 
+        <a onclick="showPolicy()">Terms</a> & 
+        <a onclick="showPolicy()">Privacy Policy</a>.
+      </small>
+    </div>
+  </section>
+
+  <div id="mainWrapper" class="hidden">
+
+    <!-- NAV -->
     <nav class="nav">
-      <div class="nav-left" onclick="app.go('#home')" style="cursor:pointer;">
-        <svg width="30" height="30" viewBox="0 0 24 24" fill="none">
-          <rect width="24" height="24" rx="6" fill="#3B82F6"/>
-          <path d="M7 12h10M7 8h10M7 16h6" stroke="#fff" stroke-width="1.4" stroke-linecap="round"/>
-        </svg>
-        <strong>Careerloop</strong>
-      </div>
-
+      <div class="nav-left" onclick="app.go('#home')"><strong>Careerloop</strong></div>
       <div class="nav-center">
         <a data-route href="#home">Home</a>
-        <a data-route href="#builder">Resume Builder</a>
+        <a data-route href="#builder">Build Resume</a>
         <a data-route href="#screen">AI Screening</a>
-        <a data-route href="#bulk">Bulk Screening</a>
-        <a data-route href="#dashboard">Dashboard</a>
+        <a data-route href="#pricing">Subscription</a>
+        <a data-route href="#admin">Admin</a>
       </div>
-
       <div class="nav-right">
-        <button class="btn ghost" id="demoBtn">Try Demo JD</button>
-        <a data-route href="#builder" class="btn primary">Create Resume</a>
+        <span id="userEmailLabel" class="user-tag"></span>
+        <button class="btn ghost small" id="logoutBtn">Logout</button>
       </div>
     </nav>
 
-    <!-- ====================== PAGE CONTAINER ======================= -->
     <main class="page-container">
-      <!-- ⚠️ Your existing 5 page sections remain here unchanged -->
-      <!-- home, builder, screen, bulk, dashboard -->
-      <!-- Do not delete them, only leave them as they are -->
+
+      <!-- HOME -->
+      <section id="home" class="page">
+        <h1 class="hero-title">Build, Improve & Shortlist Resumes With AI</h1>
+        <p class="hero-sub">Create ATS friendly resumes & screen multiple profiles using AI scoring.</p>
+        <div class="hero-buttons">
+          <a data-route href="#builder" class="btn primary">Build Resume</a>
+          <a data-route href="#screen" class="btn outline">AI Screening</a>
+        </div>
+      </section>
+
+      <!-- RESUME BUILDER -->
+      <section id="builder" class="page">
+        <h2 class="section-title">AI Resume Builder</h2>
+
+        <label>Full Name</label>
+        <input id="b_name"/>
+
+        <label>Email</label>
+        <input id="b_email"/>
+
+        <label>Target Role</label>
+        <input id="b_role"/>
+
+        <label>Experience Level</label>
+        <input id="b_exp"/>
+
+        <label>Top Achievements</label>
+        <textarea id="b_achieve"></textarea>
+
+        <label>Main Skills</label>
+        <input id="b_skills"/>
+
+        <label>Projects / Experience</label>
+        <textarea id="b_proj"></textarea>
+
+        <label>Education</label>
+        <textarea id="b_edu"></textarea>
+
+        <label>Certifications</label>
+        <textarea id="b_cert"></textarea>
+
+        <label>Extras</label>
+        <textarea id="b_extra"></textarea>
+
+        <label class="consent-block">
+          <input type="checkbox" id="b_consent"/> I agree Careerloop may store & analyze my resume.
+        </label>
+
+        <button class="btn primary" id="genResume">Generate Using AI</button>
+
+        <div id="resumePreview" class="preview-card">
+          <p class="muted">Your AI resume will appear here...</p>
+        </div>
+
+        <div class="builder-actions">
+          <button class="btn outline" id="saveResumeBtn">Save</button>
+          <button class="btn ghost" id="downloadPdfBtn">Download PDF</button>
+        </div>
+      </section>
+
+      <!-- SCREENING -->
+      <section id="screen" class="page">
+        <h2 class="section-title">AI Resume Screening</h2>
+
+        <h4>Single</h4>
+        <textarea id="singleJD" placeholder="Paste JD"></textarea>
+        <textarea id="singleResume" placeholder="Paste Resume"></textarea>
+        <button class="btn primary" id="screenSingleBtn">Screen</button>
+        <div id="singleScreenResult" class="result-card hidden"></div>
+
+        <h4>Bulk</h4>
+        <textarea id="bulkJD" placeholder="Paste JD"></textarea>
+        <input type="file" id="bulkFiles" multiple accept=".pdf,.doc,.docx,.txt"/>
+        <button class="btn primary" id="screenBulkBtn">Upload & Analyze</button>
+        <div id="bulkScreenResult" class="result-card hidden"></div>
+      </section>
+
+      <!-- SUBSCRIPTION -->
+      <section id="pricing" class="page">
+        <h2 class="section-title">Subscription</h2>
+        <div class="price-card">
+          <h3>Careerloop Premium</h3>
+          <p class="old-price">₹299</p>
+          <p class="new-price">₹0</p>
+          <button class="btn primary">Claim Free</button>
+          <small class="muted tiny">Launch offer limited</small>
+        </div>
+      </section>
+
+      <!-- ADMIN -->
+      <section id="admin" class="page">
+        <h2 class="section-title">Admin Analytics</h2>
+        <button class="btn primary" id="loadAdminStats">Load Analytics</button>
+        <pre id="adminStats" class="admin-box"></pre>
+      </section>
+
     </main>
 
-    <!-- ====================== FOOTER ======================= -->
-    <footer class="footer">
-      <div>© <span id="year"></span> Careerloop • Built for smart hiring</div>
-      <div class="muted">Public Beta • Feedback welcome</div>
-    </footer>
   </div>
+</div>
 
-  <!-- ====================================================== -->
-  <!--                    AI CHAT WIDGET                     -->
-  <!-- ====================================================== -->
-
-  <!-- Floating toggle button -->
-  <div id="clai-toggle">💬</div>
-
-  <!-- Chat Panel -->
-  <div id="clai-panel" class="clai-hidden">
-    <div class="clai-header">Careerloop AI Assistant</div>
-
-    <div id="clai-messages"></div>
-
-    <div id="clai-suggestions"></div>
-    <button id="clai-clear" onclick="clearChatHistory()">🗑 Clear Chat</button>
-
-    <form id="clai-form">
-      <input id="clai-input" placeholder="Ask anything..." />
-      <button type="button" id="clai-voice">🎤</button>
-      <button type="button" id="clai-file">📄</button>
-      <input type="file" id="clai-file-input" accept=".txt,.pdf,.doc,.docx" style="display:none" />
-      <button type="submit" id="clai-send-btn">➤</button>
-    </form>
-  </div>
-
-  <!-- JS FILES -->
-  <script src="assets/app.js"></script>
-  <script src="assets/chat-assistant.js"></script>
+<script src="assets/app.js"></script>
 
 </body>
 </html>
