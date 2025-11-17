@@ -1,5 +1,5 @@
 /**************** CONFIG ****************/
-const BACKEND = "https://careerloopaibackend.onrender.com"; // change if needed
+const BACKEND = "https://careerloopaibackend.onrender.com"; // your backend
 const $ = (id) => document.getElementById(id);
 
 function toast(msg, t = 3000) {
@@ -9,7 +9,7 @@ function toast(msg, t = 3000) {
   setTimeout(() => (el.style.display = "none"), t);
 }
 
-/**************** VISITOR ID + ANALYTICS HELPERS ****************/
+/**************** VISITOR & ANALYTICS ****************/
 function getVisitorId() {
   let vid = localStorage.getItem("cl_vid");
   if (!vid) {
@@ -26,9 +26,7 @@ async function trackVisit(page = "home") {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ visitor_id: getVisitorId(), page }),
     });
-  } catch (e) {
-    console.log("analytics visit error", e);
-  }
+  } catch (e) {}
 }
 
 async function trackEvent(event_type, email = null) {
@@ -36,18 +34,12 @@ async function trackEvent(event_type, email = null) {
     await fetch(`${BACKEND}/api/analytics/event`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        visitor_id: getVisitorId(),
-        email,
-        event_type,
-      }),
+      body: JSON.stringify({ visitor_id: getVisitorId(), email, event_type }),
     });
-  } catch (e) {
-    console.log("analytics event error", e);
-  }
+  } catch {}
 }
 
-/**************** AUTH STATE ****************/
+/**************** AUTH ****************/
 function requireAuth() {
   const email = localStorage.getItem("cl_user");
   if (!email) {
@@ -58,33 +50,24 @@ function requireAuth() {
   $("userEmailLabel").textContent = email;
   $("login").classList.remove("page-active");
   $("mainWrapper").classList.remove("hidden");
-  const pageId = (location.hash || "#home").replace("#", "");
-  showPage(pageId);
-  trackVisit(pageId);
+  showPage((location.hash || "#home").replace("#", ""));
 }
 
 function showPage(id) {
   document.querySelectorAll(".page").forEach((p) => p.classList.remove("page-active"));
-  const el = document.getElementById(id);
+  const el = $(id);
   if (el) el.classList.add("page-active");
   trackVisit(id);
 }
 
-/**************** LOGIN UI TOGGLE ****************/
+/**************** LOGIN UI ****************/
+$("switchSecure").onclick = (e) => (e.preventDefault(), toggleLogin(true));
+$("switchQuick").onclick = (e) => (e.preventDefault(), toggleLogin(false));
+
 function toggleLogin(secure) {
   $("quickLogin").classList.toggle("hidden", secure);
   $("secureLogin").classList.toggle("hidden", !secure);
 }
-
-$("switchSecure").onclick = (e) => {
-  e.preventDefault();
-  toggleLogin(true);
-};
-
-$("switchQuick").onclick = (e) => {
-  e.preventDefault();
-  toggleLogin(false);
-};
 
 /**************** QUICK LOGIN ****************/
 $("quickLoginBtn").onclick = () => {
@@ -94,8 +77,8 @@ $("quickLoginBtn").onclick = () => {
   requireAuth();
 };
 
-/**************** SECURE LOGIN (OTP) – if backend has it, else this is harmless **************/
-$("sendOtpBtn")?.addEventListener("click", async () => {
+/**************** OTP LOGIN (Optional backend support) ****************/
+$("sendOtpBtn").onclick = async () => {
   const email = $("secureEmail").value.trim();
   if (!email.includes("@")) return toast("Enter valid email");
 
@@ -105,65 +88,56 @@ $("sendOtpBtn")?.addEventListener("click", async () => {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ email }),
     });
-    toast("OTP sent to your email");
+    toast("OTP sent to email");
     $("otpInput").classList.remove("hidden");
     $("verifyOtpBtn").classList.remove("hidden");
   } catch {
-    toast("Failed to send OTP");
+    toast("OTP not sent");
   }
-});
+};
 
-$("verifyOtpBtn")?.addEventListener("click", async () => {
+$("verifyOtpBtn").onclick = async () => {
   const email = $("secureEmail").value.trim();
   const otp = $("otpInput").value.trim();
   if (!otp) return toast("Enter OTP");
 
   try {
-    const res = await fetch(`${BACKEND}/auth/verify`, {
+    const r = await fetch(`${BACKEND}/auth/verify`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ email, otp }),
     });
-    if (!res.ok) {
-      toast("Invalid or expired OTP");
-      return;
-    }
+    if (!r.ok) return toast("Invalid OTP");
     localStorage.setItem("cl_user", email);
     requireAuth();
   } catch {
     toast("OTP verify failed");
   }
-});
-
-/**************** LOGOUT ****************/
-$("logoutBtn").onclick = () => {
-  localStorage.removeItem("cl_user");
-  location.reload();
 };
 
-/**************** NAV ROUTING ****************/
-window.addEventListener("hashchange", () => {
-  const id = (location.hash || "#home").replace("#", "");
-  showPage(id);
-});
+/**************** LOGOUT ****************/
+$("logoutBtn").onclick = () => (localStorage.removeItem("cl_user"), location.reload());
 
-document.querySelectorAll("[data-route]").forEach((a) => {
+/**************** ROUTING ****************/
+window.addEventListener("hashchange", () =>
+  showPage((location.hash || "#home").replace("#", ""))
+);
+
+document.querySelectorAll("[data-route]").forEach((a) =>
   a.addEventListener("click", (e) => {
     e.preventDefault();
-    const hash = a.getAttribute("href");
-    location.hash = hash;
-  });
-});
+    location.hash = a.getAttribute("href");
+  })
+);
 
 /**************** RESUME BUILDER ****************/
 $("genResume").onclick = async () => {
-  const name = $("b_name").value.trim();
   const email = $("b_email").value.trim() || localStorage.getItem("cl_user");
-  if (!name || !email) return toast("Name & email required");
-  if (!$("b_consent").checked) return toast("Consent required");
+  if (!$("b_name").value.trim() || !email) return toast("Enter name & email");
+  if (!$("b_consent").checked) return toast("Consent required ✔");
 
   const payload = {
-    name,
+    name: $("b_name").value.trim(),
     email,
     target_role: $("b_role").value.trim(),
     experience_level: $("b_exp").value.trim(),
@@ -173,34 +147,29 @@ $("genResume").onclick = async () => {
     education: $("b_edu").value.trim(),
     certifications: $("b_cert").value.trim(),
     extras: $("b_extra").value.trim(),
-    consent: true,
   };
 
-  $("resumePreview").innerHTML = "<p class='muted'>Generating resume...</p>";
+  $("resumePreview").innerHTML = "<p class='muted'>⏳ Creating resume...</p>";
 
   try {
-    const res = await fetch(`${BACKEND}/api/builder/generate`, {
+    const r = await fetch(`${BACKEND}/api/builder/generate`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(payload),
     });
-    const data = await res.json();
-    if (!res.ok) throw new Error(data.detail || "Error");
+    const data = await r.json();
+    if (!r.ok) throw data;
     $("resumePreview").textContent = data.resume;
-
-    // 🔹 Analytics: resume generated
     trackEvent("resume_generated", email);
-
-  } catch (err) {
-    toast(err.message);
-    $("resumePreview").innerHTML = "<p class='muted'>Error generating resume</p>";
+  } catch {
+    $("resumePreview").innerHTML = "<p class='muted'>⚠️ Failed to generate</p>";
   }
 };
 
 $("saveResumeBtn").onclick = async () => {
   const email = localStorage.getItem("cl_user");
   const resume = $("resumePreview").textContent.trim();
-  if (!resume) return toast("Generate resume first");
+  if (!resume) return toast("Generate first");
 
   try {
     await fetch(`${BACKEND}/api/builder/save`, {
@@ -208,7 +177,7 @@ $("saveResumeBtn").onclick = async () => {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ email, resume }),
     });
-    toast("Resume saved");
+    toast("💾 Saved");
   } catch {
     toast("Save failed");
   }
@@ -216,77 +185,60 @@ $("saveResumeBtn").onclick = async () => {
 
 $("downloadPdfBtn").onclick = () => {
   const text = $("resumePreview").textContent.trim();
-  if (!text) return toast("Generate resume first");
+  if (!text) return toast("Generate first");
   const w = window.open("", "_blank");
   w.document.write(`<pre style="font-family:Arial;white-space:pre-wrap;">${text}</pre>`);
   w.print();
 };
 
-/**************** SINGLE SCREENING ****************/
+/**************** SCREENING ****************/
 $("screenSingleBtn").onclick = async () => {
-  const job_description = $("singleJD").value.trim();
-  const resume_text = $("singleResume").value.trim();
-  if (!job_description || !resume_text) return toast("Enter JD & Resume");
+  const jd = $("singleJD").value.trim();
+  const resume = $("singleResume").value.trim();
+  if (!jd || !resume) return toast("Enter JD & Resume");
 
   $("singleScreenResult").classList.remove("hidden");
-  $("singleScreenResult").innerHTML = "Processing...";
+  $("singleScreenResult").innerHTML = "⏳ Processing...";
 
   try {
-    const res = await fetch(`${BACKEND}/api/screen/single`, {
+    const r = await fetch(`${BACKEND}/api/screen/single`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ job_description, resume_text }),
+      body: JSON.stringify({ job_description: jd, resume_text: resume }),
     });
-    const data = await res.json();
-    $("singleScreenResult").innerHTML = `<b>Score:</b> ${data.score}/100<br><br>${data.summary}`;
-
-    // 🔹 Analytics: single screening
-    const email = localStorage.getItem("cl_user");
-    trackEvent("screen_single", email);
-
+    const data = await r.json();
+    $("singleScreenResult").innerHTML = `<b>Score:</b> ${data.score}/100<br><hr>${data.summary}`;
+    trackEvent("screen_single", localStorage.getItem("cl_user"));
   } catch {
-    $("singleScreenResult").innerHTML = "Error running screening";
+    $("singleScreenResult").innerHTML = "❌ Error";
   }
 };
 
-/**************** BULK SCREENING ****************/
 $("screenBulkBtn").onclick = async () => {
   const jd = $("bulkJD").value.trim();
   const files = $("bulkFiles").files;
-  if (!jd || files.length === 0) return toast("Enter JD and attach files");
+  if (!jd || !files.length) return toast("Add JD & files");
 
   $("bulkScreenResult").classList.remove("hidden");
-  $("bulkScreenResult").innerHTML = "Uploading & analyzing...";
+  $("bulkScreenResult").innerHTML = "⏳ Uploading...";
 
   const fd = new FormData();
   fd.append("jd", jd);
   for (const f of files) fd.append("files", f);
 
   try {
-    const res = await fetch(`${BACKEND}/api/screen/bulk`, {
-      method: "POST",
-      body: fd,
-    });
-    const data = await res.json();
+    const r = await fetch(`${BACKEND}/api/screen/bulk`, { method: "POST", body: fd });
+    const data = await r.json();
     $("bulkScreenResult").innerHTML = `<pre>${JSON.stringify(data.results, null, 2)}</pre>`;
-
-    // 🔹 Analytics: bulk screening
-    const email = localStorage.getItem("cl_user");
-    trackEvent("screen_bulk", email);
-
+    trackEvent("screen_bulk", localStorage.getItem("cl_user"));
   } catch {
-    $("bulkScreenResult").innerHTML = "Error analyzing";
+    $("bulkScreenResult").innerHTML = "❌ Error";
   }
 };
 
-/**************** SUBSCRIPTION + CONFETTI ****************/
+/**************** SUBSCRIPTION ****************/
 function celebrate() {
-  confetti({
-    particleCount: 220,
-    spread: 120,
-    origin: { y: 0.6 },
-    colors: ["#6c5ce7", "#b26efb", "#ffeaa7", "#00cec9"],
-  });
+  confetti({ particleCount: 220, spread: 120, origin: { y: 0.6 } });
 }
 
 $("claimSubBtn").onclick = async () => {
@@ -294,58 +246,51 @@ $("claimSubBtn").onclick = async () => {
   if (!email) return toast("Login first");
 
   try {
-    const res = await fetch(`${BACKEND}/api/admin/subscribe`, {
+    const r = await fetch(`${BACKEND}/api/admin/subscribe`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ email }),
     });
-    if (!res.ok) throw new Error("Subscribe failed");
+    if (!r.ok) throw 0;
     celebrate();
-    toast("Subscription activated!");
+    toast("🎉 Subscribed!");
     $("claimSubBtn").disabled = true;
     $("claimSubBtn").textContent = "Activated ✔";
   } catch {
-    toast("Subscription error");
+    toast("Error");
   }
 };
 
 /**************** INIT ****************/
 requireAuth();
 
-/**************** BACKGROUND WAVE ANIMATION ****************/
-const canvas = document.getElementById("bgWaveCanvas");
+/**************** BACKGROUND - WAVES ****************/
+const canvas = $("bgWaveCanvas");
 const ctx = canvas.getContext("2d");
 
 function resizeCanvas() {
-  canvas.width = window.innerWidth;
-  canvas.height = window.innerHeight;
+  canvas.width = innerWidth;
+  canvas.height = innerHeight;
 }
 resizeCanvas();
-window.onresize = resizeCanvas;
+onresize = resizeCanvas;
 
 let t = 0;
-function draw() {
+(function draw() {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-  for (let i = 0; i < 3; i++) {
+  ["#6c5ce7", "#b26efb", "#5dade2"].forEach((color, i) => {
     ctx.beginPath();
     ctx.lineWidth = 2;
-    ctx.strokeStyle = i === 0 ? "#6c5ce7ff" : i === 1 ? "#b26efbff" : "#5dade2ff";
+    ctx.strokeStyle = color;
+    const amp = 40 + i * 15;
+    const wl = 0.01 + i * 0.005;
+    const yOff = canvas.height * 0.7 + i * 25;
 
-    const amplitude = 40 + i * 15;
-    const wavelength = 0.01 + i * 0.005;
-    const yOffset = canvas.height * 0.7 + i * 25;
-
-    for (let x = 0; x < canvas.width; x++) {
-      const y = yOffset + Math.sin(x * wavelength + t + i) * amplitude;
-      ctx.lineTo(x, y);
-    }
+    for (let x = 0; x < canvas.width; x++)
+      ctx.lineTo(x, yOff + Math.sin(x * wl + t + i) * amp);
 
     ctx.stroke();
-  }
-
+  });
   t += 0.015;
   requestAnimationFrame(draw);
-}
-
-draw();
+})();
