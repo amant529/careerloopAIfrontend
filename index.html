@@ -5,19 +5,31 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
 
-  <title>Careerloop AI | ATS Resume Builder & Screening</title>
+  <title>Careerloop AI | ATS Resume Builder & AI Screening</title>
 
-  <meta name="description" content="Create ATS-ready professional resumes using AI and screen candidates instantly. Free for early launch users.">
-  <meta name="keywords" content="Resume Builder, ATS Resume, AI Resume, Resume Screening, Bulk Screening, HR Tech, Jobs India">
+  <!-- SEO -->
+  <meta name="description" content="Careerloop AI lets you create ATS-ready professional resumes using AI and run resume screening (single and bulk) to shortlist candidates instantly. Free for early launch users.">
+  <meta name="keywords" content="Resume Builder, ATS Resume, AI Resume, Resume Screening, Bulk Screening, HR Tech, Jobs India, Careerloop AI">
+  <meta name="robots" content="index,follow" />
+
+  <!-- (Optional) if you have a canonical domain -->
+  <!-- <link rel="canonical" href="https://careerloopai.com/" /> -->
+
+  <!-- Basic OG tags (optional image) -->
+  <meta property="og:title" content="Careerloop AI | ATS Resume Builder & Screening">
+  <meta property="og:description" content="Generate ATS-friendly resumes and run AI-powered screening for single and bulk CVs.">
+  <meta property="og:type" content="website">
 
   <link rel="stylesheet" href="assets/styles.css" />
 </head>
 
 <body>
 
+<!-- Animated background -->
 <canvas id="bgWaveCanvas"></canvas>
 <div id="bgOverlay"></div>
 
+<!-- Toast notifications -->
 <div id="toast"></div>
 
 <div id="app">
@@ -47,12 +59,12 @@
     </div>
   </section>
 
-
-  <!-- MAIN APP -->
+  <!-- MAIN APP (after login) -->
   <div id="mainWrapper" class="hidden">
 
+    <!-- NAVBAR -->
     <nav class="nav">
-      <div class="nav-brand" onclick="location.hash='#home'">Careerloop</div>
+      <div class="nav-brand" data-route href="#home">Careerloop</div>
       <div class="nav-links">
         <a href="#home" data-route>Home</a>
         <a href="#builder" data-route>Resume Builder</a>
@@ -77,23 +89,43 @@
         </div>
       </section>
 
-      <!-- BUILDER -->
+      <!-- RESUME BUILDER -->
       <section id="builder" class="page">
         <h2>AI Resume Builder</h2>
 
-        <label>Full Name</label><input id="b_name" />
-        <label>Email</label><input id="b_email" />
-        <label>Target Role</label><input id="b_role" />
-        <label>Experience Level</label><input id="b_exp" />
-        <label>Achievements</label><textarea id="b_achieve"></textarea>
-        <label>Main Skills</label><input id="b_skills" />
-        <label>Projects & Experience</label><textarea id="b_proj"></textarea>
-        <label>Education</label><textarea id="b_edu"></textarea>
-        <label>Certifications</label><textarea id="b_cert"></textarea>
-        <label>Extras</label><textarea id="b_extra"></textarea>
+        <label>Full Name</label>
+        <input id="b_name" />
+
+        <label>Email</label>
+        <input id="b_email" />
+
+        <label>Target Role</label>
+        <input id="b_role" />
+
+        <label>Experience Level</label>
+        <input id="b_exp" placeholder="Fresher / 1-3 years / Senior etc." />
+
+        <label>Achievements</label>
+        <textarea id="b_achieve" placeholder="Short bullet points, rough notes are fine"></textarea>
+
+        <label>Main Skills</label>
+        <input id="b_skills" placeholder="Python, SQL, Excel, ..." />
+
+        <label>Projects & Experience</label>
+        <textarea id="b_proj" placeholder="- Built dashboard...\n- Automated reports..."></textarea>
+
+        <label>Education</label>
+        <textarea id="b_edu"></textarea>
+
+        <label>Certifications</label>
+        <textarea id="b_cert"></textarea>
+
+        <label>Extras</label>
+        <textarea id="b_extra" placeholder="Hackathons, languages, interests, etc."></textarea>
 
         <label class="consent-block">
-          <input type="checkbox" id="b_consent" /> I allow Careerloop to store & improve my resume.
+          <input type="checkbox" id="b_consent" />
+          I allow Careerloop to store & improve my resume to help with job opportunities.
         </label>
 
         <button class="btn primary" id="genResume">Generate AI Resume</button>
@@ -108,7 +140,7 @@
         </div>
       </section>
 
-      <!-- SCREEN -->
+      <!-- AI SCREENING -->
       <section id="screen" class="page">
         <h2>AI Resume Screening</h2>
 
@@ -125,13 +157,17 @@
         <div id="bulkScreenResult" class="result-box hidden"></div>
       </section>
 
-      <!-- PRICING -->
+      <!-- SUBSCRIPTION -->
       <section id="pricing" class="page">
         <h2>Subscription Offer</h2>
         <div class="price-box">
           <h3>Careerloop Premium</h3>
-          <p><span class="old">₹299</span> <span class="new">₹0 FREE Launch</span></p>
+          <p>
+            <span class="old">₹299</span>
+            <span class="new">₹0 FREE Launch</span>
+          </p>
           <button class="btn primary" id="claimSubBtn">Claim Now</button>
+          <p class="muted tiny">Launch offer – one-time free activation for early users.</p>
         </div>
       </section>
 
@@ -139,14 +175,17 @@
   </div>
 </div>
 
+<!-- Confetti for subscription -->
 <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
 
+<!-- App JS -->
 <script>
-(function(){
-  const s = document.createElement("script");
-  s.src = "assets/app.js?v=" + Date.now();
-  document.body.appendChild(s);
-})();
+  (function () {
+    const s = document.createElement("script");
+    s.src = "assets/app.js?v=" + Date.now();
+    s.onerror = () => alert("Error loading app.js – check path /assets/app.js");
+    document.body.appendChild(s);
+  })();
 </script>
 
 </body>
