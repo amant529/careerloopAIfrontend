@@ -120,3 +120,10 @@ input, textarea {
   backdrop-filter:blur(2px);
   z-index:2;
 }
+/* EMERGENCY FIX - Reset accidental blur & disable overlay */
+html, body, * {
+    filter: none !important;
+    backdrop-filter: none !important;
+    pointer-events: auto !important;
+    -webkit-filter: none !important;
+}
