@@ -1,0 +1,85 @@
+<div id="aiBubble" class="ai-bubble" onclick="toggleChat()">
+    💬
+</div>
+
+<div id="aiChat" class="ai-chat-box">
+    <h3>Careerloop AI Assistant</h3>
+    <div id="chatMessages" class="messages"></div>
+
+    <input id="chatInput" placeholder="Type your message..." class="chat-input"/>
+    <button onclick="sendChat()" class="btn-primary-small">Send</button>
+</div>
+
+<style>
+.ai-bubble {
+    position: fixed;
+    bottom: 25px;
+    right: 25px;
+    background: #2563eb;
+    color: white;
+    border-radius: 50%;
+    width: 60px;
+    height: 60px;
+    font-size: 28px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    cursor: pointer;
+}
+
+.ai-chat-box {
+    position: fixed;
+    bottom: 100px;
+    right: 25px;
+    width: 320px;
+    background: rgba(255,255,255,0.12);
+    backdrop-filter: blur(20px);
+    border-radius: 20px;
+    padding: 15px;
+    display: none;
+    border: 1px solid rgba(255,255,255,0.3);
+    color: white;
+}
+
+.messages {
+    height: 200px;
+    overflow-y: auto;
+    background: rgba(255,255,255,0.08);
+    margin-bottom: 10px;
+    padding: 10px;
+    border-radius: 10px;
+}
+
+.chat-input {
+    width: 100%;
+    padding: 12px;
+    margin-bottom: 10px;
+    border-radius: 10px;
+    border: none;
+}
+</style>
+
+<script>
+function toggleChat() {
+    const box = document.getElementById("aiChat");
+    box.style.display = box.style.display === "block" ? "none" : "block";
+}
+
+async function sendChat() {
+    const msg = document.getElementById("chatInput").value;
+    const token = localStorage.getItem("careerloop_token");
+    const msgs = document.getElementById("chatMessages");
+
+    msgs.innerHTML += `<div><b>You:</b> ${msg}</div>`;
+
+    const res = await fetch("https://your-backend-url/api/chat/assist", {
+        method: "POST",
+        headers: {"Content-Type": "application/json"},
+        body: JSON.stringify({message: msg, role: "user"})
+    });
+
+    const data = await res.json();
+    msgs.innerHTML += `<div><b>AI:</b> ${data.reply}</div>`;
+    document.getElementById("chatInput").value = "";
+}
+</script>
