@@ -1,0 +1,96 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;900&display=swap');
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: "Inter", sans-serif;
+}
+
+body {
+    background: radial-gradient(circle at 10% 20%, #0ea5e9, #1e3a8a);
+    overflow-x: hidden;
+    color: #fff;
+}
+
+/* Header */
+header {
+    width: 100%;
+    padding: 20px 50px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.logo { width: 160px; }
+
+/* Hero Section */
+.hero {
+    height: 100vh;
+    text-align: center;
+    padding-top: 80px;
+}
+
+.title {
+    font-size: 55px;
+    font-weight: 800;
+    line-height: 1.2;
+}
+
+.title span {
+    background: linear-gradient(90deg, #00e6ff, #0099ff);
+    -webkit-background-clip: text;
+    color: transparent;
+}
+
+.subtitle {
+    margin-top: 20px;
+    font-size: 20px;
+    max-width: 650px;
+    margin-left: auto;
+    margin-right: auto;
+    opacity: 0.9;
+}
+
+/* Buttons */
+.btn-primary, .btn-large, .btn-outline {
+    padding: 14px 30px;
+    border-radius: 12px;
+    border: none;
+    cursor: pointer;
+    font-size: 17px;
+    transition: 0.2s;
+}
+
+.btn-primary {
+    background: #2563eb;
+    color: white;
+}
+
+.btn-large {
+    background: #3b82f6;
+    color: white;
+    font-size: 18px;
+    padding: 18px 35px;
+}
+
+.btn-outline {
+    border: 2px solid #fff;
+    background: transparent;
+    color: white;
+}
+
+.btn-group {
+    margin-top: 40px;
+    display: flex;
+    gap: 25px;
+    justify-content: center;
+}
+
+/* Waves */
+.waves {
+    width: 100%;
+    position: absolute;
+    bottom: 0;
+    opacity: 0.8;
+}
