@@ -1,0 +1,30 @@
+<div id="otpModal" class="otp-modal">
+    <div class="otp-box">
+        <h3>Enter OTP</h3>
+        <input id="otpInput" class="input" placeholder="6-digit OTP">
+
+        <button onclick="verifyOTP()" class="btn-primary">Verify</button>
+    </div>
+</div>
+
+<style>
+.otp-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0,0,0,0.6);
+    display: none;
+    justify-content: center;
+    align-items: center;
+}
+
+.otp-box {
+    background: white;
+    padding: 40px;
+    border-radius: 20px;
+    width: 300px;
+    text-align: center;
+}
+</style>
