@@ -1,1 +1,21 @@
+<h2>Admin Dashboard</h2>
+<div id="stats"></div>
+
+<script>
+async function loadStats() {
+    const token = getToken();
+    const res = await fetch("https://your-backend-url/admin/dashboard", {
+        headers: { "Authorization": token }
+    });
+    const data = await res.json();
+
+    document.getElementById("stats").innerHTML = `
+        <div class='card'>Users: ${data.users}</div>
+        <div class='card'>Resumes: ${data.resumes}</div>
+        <div class='card'>ATS Screens: ${data.ats}</div>
+        <div class='card'>Bulk Screens: ${data.bulk}</div>
+    `;
+}
+loadStats();
+</script>
 
