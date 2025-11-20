@@ -1,1 +1,64 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <link rel="stylesheet" href="../styles.css">
+</head>
+
+<body>
+
+<div class="container-center">
+    <h2>Select Your Role</h2>
+
+    <div class="card-role">
+        <button onclick="selectRole('jobseeker')" class="btn-large">Job Seeker</button>
+        <button onclick="selectRole('business')" class="btn-large">Business / HR</button>
+    </div>
+
+    <input id="email" placeholder="Enter Email" class="input">
+
+    <button class="btn-primary" onclick="sendOTP()">Send OTP</button>
+
+    <input id="otp" placeholder="Enter OTP" class="input">
+    <button class="btn-primary" onclick="verifyOTP()">Verify & Login</button>
+</div>
+
+<script>
+let role = "";
+
+function selectRole(r) {
+    role = r;
+    alert("Role Selected: " + r);
+}
+
+async function sendOTP() {
+    const email = document.getElementById("email").value;
+    await fetch("https://your-backend-url/auth/send-otp", {
+        method: "POST",
+        headers: {"Content-Type": "application/json"},
+        body: JSON.stringify({ email, role })
+    });
+
+    alert("OTP sent!");
+}
+
+async function verifyOTP() {
+    const email = document.getElementById("email").value;
+    const otp = document.getElementById("otp").value;
+
+    const res = await fetch("https://your-backend-url/auth/verify-otp", {
+        method: "POST",
+        headers: {"Content-Type": "application/json"},
+        body: JSON.stringify({ email, otp })
+    });
+
+    const data = await res.json();
+    localStorage.setItem("careerloop_token", data.token);
+
+    if (role === "jobseeker") window.location.href = "jobseeker.html";
+    else window.location.href = "business.html";
+}
+</script>
+
+</body>
+</html>
 
