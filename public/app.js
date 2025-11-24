@@ -1,32 +1,45 @@
-// =============================
+// ======================================
 // CONFIG
-// =============================
+// ======================================
 const BACKEND = "https://careerloopaibackend.onrender.com";
 
-// =============================
-// ROLE + LOGIN
-// =============================
-function setRole(role) {
-  localStorage.setItem("careerloop_role", role);
-  const jobBtn = document.getElementById("jobseekerBtn");
-  const bizBtn = document.getElementById("businessBtn");
-  if (jobBtn && bizBtn) {
-    jobBtn.classList.toggle("selected", role === "jobseeker");
-    bizBtn.classList.toggle("selected", role === "business");
+// ======================================
+// AUTH HELPERS
+// ======================================
+
+function getUser() {
+  return {
+    email: localStorage.getItem("cl_email"),
+    role: localStorage.getItem("cl_role")
+  };
+}
+
+function requireAuth() {
+  const { email } = getUser();
+  if (!email) {
+    window.location.href = "login.html";
   }
 }
 
-function getRole() {
-  return localStorage.getItem("careerloop_role");
+function logout() {
+  localStorage.removeItem("cl_email");
+  localStorage.removeItem("cl_role");
+  window.location.href = "login.html";
 }
 
-function continueLogin() {
+// ======================================
+// LOGIN / ROLE SELECTION
+// ======================================
+
+function loginUser() {
   const emailInput = document.getElementById("loginEmail");
+  const roleRadio = document.querySelector("input[name='role']:checked");
+
   const email = emailInput ? emailInput.value.trim() : "";
-  const role = getRole();
+  const role = roleRadio ? roleRadio.value : "";
 
   if (!role) {
-    alert("Please choose Job Seeker or Business / HR first.");
+    alert("Please select Job Seeker or Business / HR.");
     return;
   }
   if (!email) {
@@ -34,53 +47,26 @@ function continueLogin() {
     return;
   }
 
-  localStorage.setItem("careerloop_email", email);
+  localStorage.setItem("cl_email", email);
+  localStorage.setItem("cl_role", role);
 
-  if (role === "business") {
-    window.location.href = "business.html";
-  } else {
+  if (role === "jobseeker") {
     window.location.href = "jobseeker.html";
+  } else {
+    window.location.href = "bulk.html"; // HR goes to bulk screening page
   }
 }
 
-function requireAuth() {
-  const email = localStorage.getItem("careerloop_email");
-  if (!email) {
-    window.location.href = "index.html";
-  }
-}
-
-function logout() {
-  localStorage.removeItem("careerloop_email");
-  localStorage.removeItem("careerloop_role");
-  window.location.href = "index.html";
-}
-
-// highlight saved role on index
-document.addEventListener("DOMContentLoaded", () => {
-  const role = getRole();
-  if (role) {
-    const jobBtn = document.getElementById("jobseekerBtn");
-    const bizBtn = document.getElementById("businessBtn");
-    if (jobBtn && bizBtn) {
-      jobBtn.classList.toggle("selected", role === "jobseeker");
-      bizBtn.classList.toggle("selected", role === "business");
-    }
-  }
-});
-
-// =============================
+// ======================================
 // AI RESUME BUILDER
-// =============================
+// ======================================
+
 async function generateResume() {
-  // requireAuth(); // optional – enable if you want hard auth
+  requireAuth();
 
-  const consentEl =
-    document.getElementById("resumeConsent") ||
-    document.getElementById("consentBox");
-
-  if (consentEl && !consentEl.checked) {
-    alert("Please agree to allow Careerloop AI to save your resume.");
+  const consent = document.getElementById("consentBox");
+  if (!consent || !consent.checked) {
+    alert("Please agree that Careerloop AI may save your resume.");
     return;
   }
 
@@ -92,7 +78,7 @@ async function generateResume() {
   const achievements = document.getElementById("rAch")?.value.trim() || "";
   const extras = document.getElementById("rExtras")?.value.trim() || "";
   const templateId =
-    document.getElementById("rTemplate")?.value || "classic-pro";
+    document.getElementById("templateSelect")?.value || "classic-pro";
 
   if (!name || !title) {
     alert("Please fill at least Name and Job Title.");
@@ -100,10 +86,12 @@ async function generateResume() {
   }
 
   const outputEl = document.getElementById("resumeOutput");
-  if (outputEl) outputEl.textContent = "Generating resume with AI...";
+  if (outputEl) {
+    outputEl.textContent = "⏳ Generating resume with AI...";
+  }
 
   try {
-    const res = await fetch(`${BACKEND}/api/resume/generate`, {
+    const response = await fetch(`${BACKEND}/api/resume/generate`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
@@ -111,18 +99,18 @@ async function generateResume() {
         title,
         experience,
         skills,
-        achievements,
         education,
+        achievements,
         extras,
-        templateId,
-      }),
+        templateId
+      })
     });
 
-    const data = await res.json().catch(() => ({}));
+    const data = await response.json().catch(() => ({}));
 
-    if (!res.ok) {
+    if (!response.ok) {
       console.error("Resume error:", data);
-      alert(data.detail || "Failed to generate resume.");
+      alert(data.detail || "OpenAI processing error");
       if (outputEl) outputEl.textContent = "";
       return;
     }
@@ -131,22 +119,22 @@ async function generateResume() {
       outputEl.textContent = data.resume || "No resume text returned.";
     }
   } catch (err) {
-    console.error("Resume network error:", err);
+    console.error("Network / AI error:", err);
     alert("Network error while generating resume.");
     if (outputEl) outputEl.textContent = "";
   }
 }
 
-// =============================
-// DOWNLOAD RESUME AS PDF
-// =============================
+// ======================================
+// DOWNLOAD AS PDF
+// ======================================
+
 function downloadPDF() {
-  const outEl = document.getElementById("resumeOutput");
-  if (!outEl || !outEl.textContent.trim()) {
+  const out = document.getElementById("resumeOutput");
+  if (!out || !out.textContent.trim()) {
     alert("Generate a resume first.");
     return;
   }
-
   if (!window.jspdf || !window.jspdf.jsPDF) {
     alert("PDF library not loaded.");
     return;
@@ -154,16 +142,20 @@ function downloadPDF() {
 
   const { jsPDF } = window.jspdf;
   const doc = new jsPDF({ unit: "pt", format: "a4" });
-  const text = outEl.textContent;
+
+  const text = out.textContent;
   const lines = doc.splitTextToSize(text, 520);
-  doc.text(lines, 40, 50);
+  doc.text(lines, 40, 60);
   doc.save("CareerloopAI_Resume.pdf");
 }
 
-// =============================
-// ATS SCREENING (single)
-// =============================
+// ======================================
+// ATS SCREENING (SINGLE)
+// ======================================
+
 async function runATS() {
+  requireAuth();
+
   const resume = document.getElementById("atsResume")?.value.trim() || "";
   const jd = document.getElementById("atsJD")?.value.trim() || "";
   const resultEl = document.getElementById("atsResult");
@@ -173,18 +165,18 @@ async function runATS() {
     return;
   }
 
-  if (resultEl) resultEl.textContent = "Running ATS check...";
+  if (resultEl) resultEl.textContent = "⏳ Running ATS check...";
 
   try {
-    const res = await fetch(`${BACKEND}/api/screening/ats`, {
+    const response = await fetch(`${BACKEND}/api/screening/ats`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ resume, jd }),
+      body: JSON.stringify({ resume, jd })
     });
 
-    const data = await res.json().catch(() => ({}));
+    const data = await response.json().catch(() => ({}));
 
-    if (!res.ok) {
+    if (!response.ok) {
       console.error("ATS error:", data);
       alert(data.detail || "Failed to run ATS check.");
       if (resultEl) resultEl.textContent = "";
@@ -199,10 +191,13 @@ async function runATS() {
   }
 }
 
-// =============================
-// BULK SCREENING (HR side)
-// =============================
+// ======================================
+// BULK SCREENING (HR)
+// ======================================
+
 async function runBulk() {
+  requireAuth();
+
   const resumes = document.getElementById("bulkResumes")?.value.trim() || "";
   const jd = document.getElementById("bulkJD")?.value.trim() || "";
   const resultEl = document.getElementById("bulkResult");
@@ -212,28 +207,29 @@ async function runBulk() {
     return;
   }
 
-  if (resultEl) resultEl.textContent = "Screening candidates...";
+  if (resultEl) resultEl.textContent = "⏳ Screening candidates...";
 
   try {
-    const res = await fetch(`${BACKEND}/api/screening/bulk`, {
+    const response = await fetch(`${BACKEND}/api/screening/bulk`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ resumes, jd }),
+      body: JSON.stringify({ resumes, jd })
     });
 
-    const data = await res.json().catch(() => ({}));
+    const data = await response.json().catch(() => ({}));
 
-    if (!res.ok) {
+    if (!response.ok) {
       console.error("Bulk ATS error:", data);
       alert(data.detail || "Failed bulk screening.");
       if (resultEl) resultEl.textContent = "";
       return;
     }
 
-    if (resultEl)
+    if (resultEl) {
       resultEl.textContent =
         JSON.stringify(data.candidates || [], null, 2) ||
         "No candidates returned.";
+    }
   } catch (err) {
     console.error("Bulk ATS network error:", err);
     alert("Network error while running bulk screening.");
