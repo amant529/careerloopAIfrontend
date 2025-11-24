@@ -2,10 +2,10 @@
 <html>
 <head>
   <title>Resume Builder</title>
-  <link rel="stylesheet" href="/styles.css">
+  <link rel="stylesheet" href="../styles.css">
 </head>
 
-<body onload="requireAuth()">
+<body>
 
   <h1 class="page-title">AI Resume Builder</h1>
 
@@ -34,16 +34,14 @@
       <label>Extra Notes</label>
       <textarea id="rExtras"></textarea>
 
-      <!-- ✅ FIXED CHECKBOX ID -->
       <div style="margin-top:15px;">
         <label>
-          <input type="checkbox" id="resumeConsent">
+          <input type="checkbox" id="consentBox">
           I agree Careerloop AI may save resume to improve job matching.
         </label>
       </div>
 
       <button class="btn-primary" onclick="generateResume()">Generate Resume</button>
-
       <button class="btn-outline" onclick="downloadPDF()">Download as PDF</button>
 
     </div>
@@ -56,7 +54,7 @@
   </div>
 
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-  <script src="/app.js"></script>
+  <script src="../app.js"></script>
 
 </body>
 </html>
