@@ -12,18 +12,42 @@
       <h1 class="page-title">Jobseeker Dashboard</h1>
       <button class="btn-outline" onclick="logout()">Logout</button>
     </div>
+
+    <p style="opacity:0.9;margin-bottom:18px;">
+      Welcome to the <strong>Careerloop AI beta</strong>. Start by creating an AI-optimised resume,
+      then test it against real job descriptions using ATS Screening.
+    </p>
+
     <div class="card-grid">
       <div class="card">
         <h3>AI Resume Builder</h3>
-        <p>Create ATS optimised resumes with our 5 premium templates.</p>
-        <button class="btn-primary" onclick="window.location.href='/resume-builder.html'">
+        <p style="margin-top:6px;">
+          Share just your <strong>basic details</strong> – Careerloop AI will write a full,
+          professional resume for you using our 5 premium templates.
+        </p>
+        <ul style="margin-top:10px;font-size:14px;opacity:0.9;">
+          <li>✅ Designed for Indian job portals & ATS</li>
+          <li>✅ Highlights your strengths automatically</li>
+          <li>✅ Freshers & experienced – both supported</li>
+        </ul>
+        <button class="btn-primary" style="margin-top:12px;"
+                onclick="window.location.href='/resume-builder.html'">
           Open Resume Builder
         </button>
       </div>
+
       <div class="card">
         <h3>ATS Screening</h3>
-        <p>Check how well your resume matches a specific JD.</p>
-        <button class="btn-primary" onclick="window.location.href='/ats.html'">
+        <p style="margin-top:6px;">
+          Paste your resume and a JD – see <strong>match score, missing keywords</strong> and
+          AI suggestions to improve.
+        </p>
+        <ul style="margin-top:10px;font-size:14px;opacity:0.9;">
+          <li>🎯 Ideal for resume + JD alignment</li>
+          <li>🔍 Shows skill gaps & role fit</li>
+        </ul>
+        <button class="btn-primary" style="margin-top:12px;"
+                onclick="window.location.href='/ats.html'">
           Run ATS Check
         </button>
       </div>
