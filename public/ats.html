@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ATS Screening – Careerloop AI</title>
+  <link rel="stylesheet" href="/styles.css" />
+</head>
+<body onload="requireAuth()">
+  <div class="page-container">
+    <div class="page-header">
+      <h1 class="page-title">ATS Screening</h1>
+      <button class="btn-outline" onclick="logout()">Logout</button>
+    </div>
+
+    <div class="card-grid">
+      <div class="card">
+        <h3>Your Resume</h3>
+        <textarea id="atsResume" placeholder="Paste your resume text here..."></textarea>
+      </div>
+      <div class="card">
+        <h3>Job Description</h3>
+        <textarea id="atsJD" placeholder="Paste JD here..."></textarea>
+        <button class="btn-primary" style="margin-top:14px;" onclick="runATS()">
+          Run ATS Match
+        </button>
+      </div>
+    </div>
+
+    <div class="card" style="margin-top:20px;">
+      <h3>Result</h3>
+      <div id="atsResult" class="result-box"></div>
+    </div>
+  </div>
+  <script src="/app.js"></script>
+</body>
+</html>
