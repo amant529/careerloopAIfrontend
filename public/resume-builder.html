@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AI Resume Builder – Careerloop AI</title>
+  <link rel="stylesheet" href="/styles.css" />
+</head>
+<body onload="requireAuth()">
+  <div class="page-container">
+    <div class="page-header">
+      <h1 class="page-title">AI Resume Builder</h1>
+      <button class="btn-outline" onclick="logout()">Logout</button>
+    </div>
+
+    <div class="card-grid">
+      <div class="card">
+        <label>Name</label>
+        <input id="rName" class="input-field" />
+        <label>Job Title</label>
+        <input id="rTitle" class="input-field" />
+        <label>Experience (text)</label>
+        <textarea id="rExp"></textarea>
+        <label>Skills (comma separated)</label>
+        <textarea id="rSkills"></textarea>
+        <label>Achievements</label>
+        <textarea id="rAch"></textarea>
+
+        <label style="margin-top:10px;display:block;">Template</label>
+        <select id="rTemplate" class="input-field" style="width:100%;max-width:260px;">
+          <option value="classic-pro">Classic Pro</option>
+          <option value="modern-blue">Modern Blue</option>
+          <option value="minimal-grey">Minimal Grey</option>
+          <option value="compact-ats">Compact ATS</option>
+          <option value="creative-edge">Creative Edge</option>
+        </select>
+
+        <button class="btn-primary" style="margin-top:14px;" onclick="generateResume()">
+          Generate Resume
+        </button>
+      </div>
+
+      <div class="card">
+        <h3>Generated Resume</h3>
+        <div id="resumeOutput" class="result-box"></div>
+      </div>
+    </div>
+  </div>
+  <script src="/app.js"></script>
+</body>
+</html>
