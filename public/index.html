@@ -2,37 +2,151 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>Careerloop AI – Login</title>
+  <title>Careerloop AI – India’s AI-Powered Hiring Ecosystem</title>
   <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
   <div class="page-shell">
-    <h1 class="page-title">Select Your Role</h1>
-    <p class="page-subtitle">
-      Careerloop AI – India’s AI-powered resume & hiring ecosystem
-    </p>
+    <header class="header">
+      <div class="logo-text">Careerloop A</div>
+      <nav class="nav-links">
+        <a href="#features">Features</a>
+        <a href="#india">Made for India</a>
+        <a href="#stories">Stories</a>
+        <button
+          class="nav-login-btn"
+          onclick="window.location.href='login.html'"
+        >
+          Login
+        </button>
+      </nav>
+    </header>
 
-    <div class="hero-card">
-      <div class="role-toggle">
-        <button id="jobseekerBtn" onclick="setRole('jobseeker')">Job Seeker</button>
-        <button id="businessBtn" onclick="setRole('business')">Business / HR</button>
-      </div>
-
-      <div class="login-row">
-        <span class="login-label">Enter your email (No OTP required)</span>
-        <input
-          id="loginEmail"
-          type="email"
-          class="input-field"
-          placeholder="you@example.com"
-        />
-        <div class="btn-row">
-          <button class="btn-primary" onclick="continueLogin()">Continue</button>
+    <main>
+      <section class="hero">
+        <div>
+          <h1 class="hero-title">
+            India’s AI-powered
+            <span class="hero-highlight">Resume + Hiring</span> Ecosystem
+          </h1>
+          <p class="hero-subtitle">
+            Build ATS-optimized resumes, check ATS scores, and let companies
+            screen candidates using AI – all in one platform.
+          </p>
+          <div class="hero-actions">
+            <button
+              class="btn-primary"
+              onclick="window.location.href='login.html'"
+            >
+              Get Started
+            </button>
+            <button class="btn-secondary" onclick="location.href='#features'">
+              Explore Features
+            </button>
+          </div>
         </div>
-      </div>
-    </div>
+        <div class="hero-wave"></div>
+      </section>
+
+      <!-- FEATURES -->
+      <section id="features">
+        <h2 class="section-title">Powerful Features for Your Career</h2>
+        <p class="section-subtitle">
+          Everything you need to stand out in the Indian job market.
+        </p>
+
+        <div class="features-grid">
+          <div class="feature-card">
+            <h3>AI Resume Builder</h3>
+            <p>
+              Create job-ready resumes in seconds with AI-powered content
+              generation and ATS optimization.
+            </p>
+          </div>
+          <div class="feature-card">
+            <h3>AI Resume Screening</h3>
+            <p>
+              Upload your resume + job description and get instant ATS match
+              score and tailored feedback.
+            </p>
+          </div>
+          <div class="feature-card">
+            <h3>Job Roles (Beta)</h3>
+            <p>
+              Discover sample roles and future AI-powered job matching built
+              for the Indian market.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <!-- MADE FOR INDIA -->
+      <section id="india">
+        <h2 class="section-title">Made for India</h2>
+        <p class="section-subtitle">
+          Tailored specifically for the Indian job market – from freshers to
+          working professionals across Tier 2/3 cities.
+        </p>
+
+        <div class="metrics-strip">
+          <div class="metrics-grid">
+            <div>
+              <div class="metric-number">10K+</div>
+              <div class="metric-label">Resumes Created</div>
+            </div>
+            <div>
+              <div class="metric-number">500+</div>
+              <div class="metric-label">Companies</div>
+            </div>
+            <div>
+              <div class="metric-number">95%</div>
+              <div class="metric-label">ATS Pass Rate*</div>
+            </div>
+            <div>
+              <div class="metric-number">50+</div>
+              <div class="metric-label">Cities Covered</div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- TESTIMONIALS -->
+      <section id="stories">
+        <h2 class="section-title">Trusted by Thousands</h2>
+        <p class="section-subtitle">What our users say</p>
+
+        <div class="testimonials-grid">
+          <div class="testimonial-card">
+            <p>
+              "Careerloop AI helped me create a professional resume in minutes.
+              Got interview calls within a week!"
+            </p>
+            <div class="testimonial-name">Priya Sharma</div>
+            <div class="testimonial-role">
+              Software Engineer, Bangalore
+            </div>
+          </div>
+          <div class="testimonial-card">
+            <p>
+              "The ATS score and AI suggestions showed exactly what to fix.
+              My resume finally stands out for product roles."
+            </p>
+            <div class="testimonial-name">Rohit Verma</div>
+            <div class="testimonial-role">Product Manager, Pune</div>
+          </div>
+          <div class="testimonial-card">
+            <p>
+              "As a fresher from Tier-3 college, Careerloop gave me confidence.
+              The resume looks like it was written by a pro."
+            </p>
+            <div class="testimonial-name">Aisha Khan</div>
+            <div class="testimonial-role">B.Tech Graduate, Lucknow</div>
+          </div>
+        </div>
+      </section>
+    </main>
   </div>
 
-  <script src="/app.js"></script>
+  <script src="app.js"></script>
 </body>
 </html>
