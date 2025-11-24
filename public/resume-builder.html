@@ -1,76 +1,61 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>AI Resume Builder – Careerloop AI</title>
-  <link rel="stylesheet" href="/styles.css" />
+  <title>Resume Builder</title>
+  <link rel="stylesheet" href="/styles.css">
 </head>
+
 <body onload="requireAuth()">
-  <div class="page-container">
-    <div class="page-header">
-      <h1 class="page-title">AI Resume Builder</h1>
-      <button class="btn-outline" onclick="logout()">Logout</button>
-    </div>
 
-    <p style="opacity:0.9;margin-bottom:18px;">
-      Enter <strong>minimum details</strong> below (even 1–2 lines per box is fine).
-      Careerloop AI will turn this into a full, ATS-friendly resume in the template you choose.
-    </p>
+  <h1 class="page-title">AI Resume Builder</h1>
 
-    <div class="card-grid">
-      <div class="card">
-        <label>Name</label>
-        <input id="rName" class="input-field" />
+  <div class="card-grid">
 
-        <label style="margin-top:10px;">Target Job Title</label>
-        <input id="rTitle" class="input-field"
-               placeholder="e.g. Business Development Executive, Data Analyst" />
+    <div class="card">
 
-        <label style="margin-top:10px;">Experience Summary (very short)</label>
-        <textarea id="rExp"
-                  placeholder="Fresher / 1 year in sales / 3 years in Python backend etc."></textarea>
+      <label>Name</label>
+      <input id="rName" class="input-field">
 
-        <label style="margin-top:10px;">Top Skills (comma separated)</label>
-        <textarea id="rSkills"
-                  placeholder="Python, SQL, communication, B2B sales, Excel"></textarea>
+      <label>Job Title</label>
+      <input id="rTitle" class="input-field">
 
-        <label style="margin-top:10px;">Education (short)</label>
-        <textarea id="rEdu"
-                  placeholder="B.Com, Mumbai University, 2023 OR B.Tech CSE, AKTU, 2024"></textarea>
+      <label>Experience</label>
+      <textarea id="rExp"></textarea>
 
-        <label style="margin-top:10px;">Achievements / Highlights</label>
-        <textarea id="rAch"
-                  placeholder="Won sales champion award, completed 5 client projects, etc."></textarea>
+      <label>Skills</label>
+      <textarea id="rSkills"></textarea>
 
-        <label style="margin-top:10px;">Anything extra you want AI to highlight?</label>
-        <textarea id="rExtras"
-                  placeholder="Looking for remote roles / comfortable with night shifts etc."></textarea>
+      <label>Education</label>
+      <textarea id="rEdu"></textarea>
 
-        <label style="margin-top:10px;display:block;">Template</label>
-        <select id="rTemplate" class="input-field" style="width:100%;max-width:260px;">
-          <option value="classic-pro">Classic Pro</option>
-          <option value="modern-blue">Modern Blue</option>
-          <option value="minimal-grey">Minimal Grey</option>
-          <option value="compact-ats">Compact ATS</option>
-          <option value="creative-edge">Creative Edge</option>
-        </select>
+      <label>Achievements</label>
+      <textarea id="rAch"></textarea>
 
-        <button class="btn-primary" style="margin-top:14px;" onclick="generateResume()">
-          Generate Resume with AI
-        </button>
+      <label>Extra Notes</label>
+      <textarea id="rExtras"></textarea>
+
+      <div style="margin-top:15px;">
+        <label>
+          <input type="checkbox" id="consentBox">
+          I agree Careerloop AI may save resume to improve job matching.
+        </label>
       </div>
 
-      <div class="card">
-        <h3>Generated Resume</h3>
-        <p style="font-size:13px;opacity:0.9;margin-top:4px;">
-          AI will create a <strong>full-page professional resume</strong> using the
-          details you entered. You can copy this into Word / PDF or export in the next version.
-        </p>
-        <div id="resumeOutput" class="result-box"></div>
-      </div>
+      <button class="btn-primary" onclick="generateResume()">Generate Resume</button>
+
+      <button class="btn-outline" onclick="downloadPDF()">Download as PDF</button>
+
     </div>
+
+    <div class="card">
+      <h3>Generated Resume</h3>
+      <div id="resumeOutput" class="result-box"></div>
+    </div>
+
   </div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   <script src="/app.js"></script>
+
 </body>
 </html>
