@@ -1,60 +1,77 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <title>Resume Builder</title>
-  <link rel="stylesheet" href="../styles.css">
+  <meta charset="UTF-8" />
+  <title>Careerloop AI – Resume Builder</title>
+  <link rel="stylesheet" href="styles.css" />
 </head>
+<body onload="requireAuth()">
+  <div class="page-shell">
+    <div class="topbar">
+      <div class="topbar-title">AI Resume Builder</div>
+      <div class="topbar-right">
+        <button class="btn-outline" onclick="window.location.href='jobseeker.html'">
+          Back to Dashboard
+        </button>
+        <button class="btn-outline" onclick="logout()">Logout</button>
+      </div>
+    </div>
 
-<body>
+    <div class="card-grid">
+      <div class="card">
+        <label>Name</label>
+        <input id="rName" class="input-field" placeholder="Your full name" />
 
-  <h1 class="page-title">AI Resume Builder</h1>
+        <label>Job Title</label>
+        <input id="rTitle" class="input-field" placeholder="Target job title" />
 
-  <div class="card-grid">
+        <label>Experience (short)</label>
+        <textarea id="rExp" placeholder="fresher / 2 years in sales / etc."></textarea>
 
-    <div class="card">
+        <label>Skills (comma separated)</label>
+        <textarea id="rSkills" placeholder="Python, SQL, communication, ..."></textarea>
 
-      <label>Name</label>
-      <input id="rName" class="input-field">
+        <label>Education</label>
+        <textarea id="rEdu" placeholder="B.Com, B.Tech, etc."></textarea>
 
-      <label>Job Title</label>
-      <input id="rTitle" class="input-field">
+        <label>Achievements / Highlights</label>
+        <textarea id="rAch" placeholder="Awards, top performer, etc."></textarea>
 
-      <label>Experience</label>
-      <textarea id="rExp"></textarea>
+        <label>Anything extra you want AI to highlight?</label>
+        <textarea id="rExtras" placeholder="Looking for remote roles, shift flexibility, etc."></textarea>
 
-      <label>Skills</label>
-      <textarea id="rSkills"></textarea>
+        <label>Template</label>
+        <select id="rTemplate" class="input-field">
+          <option value="classic-pro">Classic Pro (default)</option>
+          <option value="modern-blue">Modern Blue</option>
+          <option value="minimal-grey">Minimal Grey</option>
+          <option value="bold-header">Bold Header</option>
+          <option value="compact-ats">Compact ATS</option>
+        </select>
 
-      <label>Education</label>
-      <textarea id="rEdu"></textarea>
+        <div class="consent-row">
+          <label>
+            <input type="checkbox" id="resumeConsent" />
+            I agree Careerloop AI may save my resume to improve job matching.
+          </label>
+        </div>
 
-      <label>Achievements</label>
-      <textarea id="rAch"></textarea>
-
-      <label>Extra Notes</label>
-      <textarea id="rExtras"></textarea>
-
-      <div style="margin-top:15px;">
-        <label>
-          <input type="checkbox" id="consentBox">
-          I agree Careerloop AI may save resume to improve job matching.
-        </label>
+        <div style="margin-top: 16px; display:flex; gap:10px;">
+          <button class="btn-primary" onclick="generateResume()">Generate Resume with AI</button>
+          <button class="btn-outline" onclick="downloadPDF()">Download as PDF</button>
+        </div>
       </div>
 
-      <button class="btn-primary" onclick="generateResume()">Generate Resume</button>
-      <button class="btn-outline" onclick="downloadPDF()">Download as PDF</button>
-
+      <div class="card">
+        <h3>Generated Resume</h3>
+        <div id="resumeOutput" class="result-box">
+          Your AI-generated resume will appear here.
+        </div>
+      </div>
     </div>
-
-    <div class="card">
-      <h3>Generated Resume</h3>
-      <div id="resumeOutput" class="result-box"></div>
-    </div>
-
   </div>
 
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-  <script src="../app.js"></script>
-
+  <script src="/app.js"></script>
 </body>
 </html>
