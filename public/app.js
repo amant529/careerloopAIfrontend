@@ -56,13 +56,25 @@ function logout() {
   window.location.href = "index.html";
 }
 
+// highlight saved role on index
+document.addEventListener("DOMContentLoaded", () => {
+  const role = getRole();
+  if (role) {
+    const jobBtn = document.getElementById("jobseekerBtn");
+    const bizBtn = document.getElementById("businessBtn");
+    if (jobBtn && bizBtn) {
+      jobBtn.classList.toggle("selected", role === "jobseeker");
+      bizBtn.classList.toggle("selected", role === "business");
+    }
+  }
+});
+
 // =============================
 // AI RESUME BUILDER
 // =============================
 async function generateResume() {
-  // requireAuth();  // uncomment if you want hard redirect when not logged in
+  // requireAuth(); // optional – enable if you want hard auth
 
-  // support both ids: resumeConsent OR consentBox
   const consentEl =
     document.getElementById("resumeConsent") ||
     document.getElementById("consentBox");
@@ -152,8 +164,6 @@ function downloadPDF() {
 // ATS SCREENING (single)
 // =============================
 async function runATS() {
-  // requireAuth();
-
   const resume = document.getElementById("atsResume")?.value.trim() || "";
   const jd = document.getElementById("atsJD")?.value.trim() || "";
   const resultEl = document.getElementById("atsResult");
@@ -193,8 +203,6 @@ async function runATS() {
 // BULK SCREENING (HR side)
 // =============================
 async function runBulk() {
-  // requireAuth();
-
   const resumes = document.getElementById("bulkResumes")?.value.trim() || "";
   const jd = document.getElementById("bulkJD")?.value.trim() || "";
   const resultEl = document.getElementById("bulkResult");
