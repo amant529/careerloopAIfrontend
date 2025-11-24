@@ -2,46 +2,68 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>Careerloop AI – Resume Builder</title>
+  <title>Careerloop AI – AI Resume Builder</title>
   <link rel="stylesheet" href="styles.css" />
 </head>
 <body onload="requireAuth()">
   <div class="page-shell">
     <div class="topbar">
       <div class="topbar-title">AI Resume Builder</div>
-      <div class="topbar-right">
-        <button class="btn-outline" onclick="window.location.href='jobseeker.html'">
-          Back to Dashboard
+      <div>
+        <button
+          class="btn-secondary"
+          onclick="window.location.href='jobseeker.html'"
+        >
+          Back
         </button>
-        <button class="btn-outline" onclick="logout()">Logout</button>
+        <button class="btn-secondary" onclick="logout()">Logout</button>
       </div>
     </div>
 
     <div class="card-grid">
-      <div class="card">
+      <div class="feature-card" style="border-radius:var(--radius-xl);">
         <label>Name</label>
         <input id="rName" class="input-field" placeholder="Your full name" />
 
         <label>Job Title</label>
-        <input id="rTitle" class="input-field" placeholder="Target job title" />
+        <input
+          id="rTitle"
+          class="input-field"
+          placeholder="Target job – e.g. Software Engineer"
+        />
 
         <label>Experience (short)</label>
-        <textarea id="rExp" placeholder="fresher / 2 years in sales / etc."></textarea>
+        <textarea
+          id="rExp"
+          placeholder="fresher / 2 years in inside sales / etc."
+        ></textarea>
 
         <label>Skills (comma separated)</label>
-        <textarea id="rSkills" placeholder="Python, SQL, communication, ..."></textarea>
+        <textarea
+          id="rSkills"
+          placeholder="Python, SQL, communication, Excel, ..."
+        ></textarea>
 
         <label>Education</label>
-        <textarea id="rEdu" placeholder="B.Com, B.Tech, etc."></textarea>
+        <textarea
+          id="rEdu"
+          placeholder="B.Com (2023), Delhi University / B.Tech CSE, etc."
+        ></textarea>
 
         <label>Achievements / Highlights</label>
-        <textarea id="rAch" placeholder="Awards, top performer, etc."></textarea>
+        <textarea
+          id="rAch"
+          placeholder="Top performer award, college fest organiser, etc."
+        ></textarea>
 
         <label>Anything extra you want AI to highlight?</label>
-        <textarea id="rExtras" placeholder="Looking for remote roles, shift flexibility, etc."></textarea>
+        <textarea
+          id="rExtras"
+          placeholder="Looking for remote roles, comfortable with night shift, etc."
+        ></textarea>
 
         <label>Template</label>
-        <select id="rTemplate" class="input-field">
+        <select id="templateSelect" class="input-field">
           <option value="classic-pro">Classic Pro (default)</option>
           <option value="modern-blue">Modern Blue</option>
           <option value="minimal-grey">Minimal Grey</option>
@@ -51,18 +73,22 @@
 
         <div class="consent-row">
           <label>
-            <input type="checkbox" id="resumeConsent" />
+            <input type="checkbox" id="consentBox" />
             I agree Careerloop AI may save my resume to improve job matching.
           </label>
         </div>
 
-        <div style="margin-top: 16px; display:flex; gap:10px;">
-          <button class="btn-primary" onclick="generateResume()">Generate Resume with AI</button>
-          <button class="btn-outline" onclick="downloadPDF()">Download as PDF</button>
+        <div style="margin-top:16px;display:flex;gap:12px;">
+          <button class="btn-primary" onclick="generateResume()">
+            Generate Resume with AI
+          </button>
+          <button class="btn-secondary" onclick="downloadPDF()">
+            Download as PDF
+          </button>
         </div>
       </div>
 
-      <div class="card">
+      <div class="feature-card" style="border-radius:var(--radius-xl);">
         <h3>Generated Resume</h3>
         <div id="resumeOutput" class="result-box">
           Your AI-generated resume will appear here.
@@ -72,6 +98,6 @@
   </div>
 
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-  <script src="/app.js"></script>
+  <script src="app.js"></script>
 </body>
 </html>
